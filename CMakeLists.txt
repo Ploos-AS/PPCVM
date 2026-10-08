@@ -222,3 +222,7 @@ add_test(NAME pegasos2_pte_keyed_bat COMMAND test_pegasos2_pte_keyed_bat)
 add_executable(test_pegasos2_pte_keyed_isi tests/test_pegasos2_pte_keyed_isi.c)
 target_link_libraries(test_pegasos2_pte_keyed_isi PRIVATE ppcvm_core)
 add_test(NAME pegasos2_pte_keyed_isi COMMAND test_pegasos2_pte_keyed_isi)
+
+add_executable(test_pegasos2_pte_keyed_dsi tests/test_pegasos2_pte_keyed_dsi.c)
+target_link_libraries(test_pegasos2_pte_keyed_dsi PRIVATE ppcvm_core)
+add_test(NAME pegasos2_pte_keyed_dsi COMMAND test_pegasos2_pte_keyed_dsi)
