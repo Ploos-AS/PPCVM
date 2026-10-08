@@ -16,7 +16,9 @@ ppcvm_mmu_result ppcvm_mmu_translate(uint32_t msr, uint32_t ea,
 ppcvm_mmu_result ppcvm_mmu_translate_bat(const ppcvm_bat_state *state,
                                          uint32_t msr, uint32_t ea,
                                          ppcvm_access access, uint32_t *pa) {
-  if (!pa || !state || access>PPCVM_ACCESS_DATA_WRITE)
+  if (!pa || !state || (access!=PPCVM_ACCESS_INSTRUCTION &&
+                         access!=PPCVM_ACCESS_DATA_READ &&
+                         access!=PPCVM_ACCESS_DATA_WRITE))
     return PPCVM_MMU_UNSUPPORTED;
   if (!(msr & (access==PPCVM_ACCESS_INSTRUCTION ? MSR_IR : MSR_DR))) {
     *pa=ea;
