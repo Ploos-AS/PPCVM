@@ -138,6 +138,19 @@ ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
     if (xo==595u || xo==210u)
       return segment_spr_step(m,instruction);
     uint32_t spr=((instruction>>16)&31u)|(((instruction>>11)&31u)<<5);
+    if ((xo==339u || xo==467u) && spr==25u) {
+      if (instruction&1u) return PPCVM_UNSUPPORTED;
+      if (m->cpu.msr&UINT32_C(0x4000)) {
+        ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_PROGRAM,m->cpu.pc);
+        m->cpu.srr1|=UINT32_C(0x00040000);
+        return PPCVM_OK;
+      }
+      unsigned rt=(instruction>>21)&31u;
+      if (xo==339u) m->cpu.gpr[rt]=m->segments.sdr1;
+      else m->segments.sdr1=m->cpu.gpr[rt];
+      m->cpu.pc+=4;
+      return PPCVM_OK;
+    }
     if ((xo==339u || xo==467u) && spr>=528u && spr<=543u)
       return bat_spr_step(m,instruction);
   }
