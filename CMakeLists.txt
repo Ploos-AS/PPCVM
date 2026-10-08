@@ -250,3 +250,7 @@ add_test(NAME cpu_exception_causes COMMAND test_cpu_exception_causes)
 add_executable(test_cpu_exception_srr1_replace tests/test_cpu_exception_srr1_replace.c)
 target_link_libraries(test_cpu_exception_srr1_replace PRIVATE ppcvm_core)
 add_test(NAME cpu_exception_srr1_replace COMMAND test_cpu_exception_srr1_replace)
+
+add_executable(test_cpu_exception_ip tests/test_cpu_exception_ip.c)
+target_link_libraries(test_cpu_exception_ip PRIVATE ppcvm_core)
+add_test(NAME cpu_exception_ip COMMAND test_cpu_exception_ip)
