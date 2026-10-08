@@ -113,3 +113,11 @@ words of PVC1 and extends the record to 32 bytes. Word offsets `+16`,
 pointer `0`, and reserved `0`. The full 32-byte record is protected
 against overlaps with ELF segments. These fields are reserved for future
 work; no firmware services are implemented by this record.
+
+### Host-side firmware information queries
+
+`ppcvm_pegasos2_firmware_query` supports three read-only selectors:
+`1` (PVC1 ABI version, currently 2), `2` (RAM bytes), and `3` (PVC1
+magic). Unsupported selectors leave the output untouched. This is a
+host API only: **guest PowerPC code cannot invoke these services yet**.
+No Open Firmware client interface is claimed.
