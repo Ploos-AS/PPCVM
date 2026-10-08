@@ -67,8 +67,8 @@ _start:
     cmpwi 8,0
     bne failed
     /* BAR0 on PCI0: config register 0x10; guest-visible LE word. */
-    lis 9,0x0010
-    ori 9,9,0x1080
+    lis 9,0x1010
+    ori 9,9,0x0080
     stw 9,0xcf8(3)
     lwz 5,0xcfc(3)
     lis 7,0x0000
