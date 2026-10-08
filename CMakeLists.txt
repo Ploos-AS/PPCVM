@@ -362,3 +362,7 @@ add_test(NAME pci_bus COMMAND test_pci_bus)
 add_executable(test_pci_bar tests/test_pci_bar.c)
 target_link_libraries(test_pci_bar PRIVATE ppcvm_core)
 add_test(NAME pci_bar COMMAND test_pci_bar)
+
+add_executable(test_pci_io_bar tests/test_pci_io_bar.c)
+target_link_libraries(test_pci_io_bar PRIVATE ppcvm_core)
+add_test(NAME pci_io_bar COMMAND test_pci_io_bar)
