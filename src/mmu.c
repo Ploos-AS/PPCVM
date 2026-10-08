@@ -186,3 +186,15 @@ ppcvm_mmu_result ppcvm_mmu_check_pte_permission(uint32_t key, uint32_t pp,
     return PPCVM_MMU_PROTECTION;
   return PPCVM_MMU_OK;
 }
+
+/* SR bit 30 selects supervisor key, bit 29 selects problem-state key.
+   MSR[PR] (0x4000) chooses which of the two is active. */
+ppcvm_mmu_result ppcvm_mmu_segment_key(const ppcvm_segment_state *state,
+                                        uint32_t msr, uint32_t ea,
+                                        uint32_t *key) {
+  if (!state || !key) return PPCVM_MMU_UNSUPPORTED;
+  uint32_t sr=state->sr[ea>>28];
+  if (sr&UINT32_C(0x80000000)) return PPCVM_MMU_UNSUPPORTED;
+  *key=(sr>>((msr&UINT32_C(0x4000))?29u:30u))&1u;
+  return PPCVM_MMU_OK;
+}
