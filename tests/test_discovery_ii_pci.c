@@ -27,7 +27,24 @@ int main(void) {
   assert(ppcvm_bus_write32be(&bus,0x80000cf8u,0u)==PPCVM_BUS_OK);
   assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
   assert(value==0xffffffffu);
+  /* A non-existent slot must not alias a populated slot. */
+  assert(ppcvm_bus_write32be(&bus,0x80000cf8u,0x00180080u)==PPCVM_BUS_OK);
+  assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
+  assert(value==UINT32_MAX);
+  /* Configuration address latches are independent across PCI interfaces. */
+  assert(ppcvm_bus_read32be(&bus,0x80000c78u,&value)==PPCVM_BUS_OK);
+  assert(value==0x00100080u);
+  /* Disabled cycle must not modify a device configuration register. */
+  assert(ppcvm_bus_write32be(&bus,0x80000cf8u,0x00100000u)==PPCVM_BUS_OK);
+  assert(ppcvm_bus_write32be(&bus,0x80000cfcu,0x00000000u)==PPCVM_BUS_OK);
+  assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
+  assert(value==UINT32_MAX);
+  assert(ppcvm_bus_write32be(&bus,0x80000cf8u,0x00100080u)==PPCVM_BUS_OK);
+  assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
+  assert(value==0x34127856u);
   ppcvm_discovery_ii_reset(&c);
   assert(c.config_address[0]==0 && c.config_address[1]==0);
+  assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
+  assert(value==UINT32_MAX);
   return 0;
 }
