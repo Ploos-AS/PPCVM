@@ -35,7 +35,8 @@ typedef enum {
   PPCVM_RUN_LIMIT=0,
   PPCVM_RUN_UNSUPPORTED=1,
   PPCVM_RUN_MEMORY_FAULT=2,
-  PPCVM_RUN_INVALID=3
+  PPCVM_RUN_INVALID=3,
+  PPCVM_RUN_HALT=4
 } ppcvm_run_reason;
 typedef struct {
   ppcvm_run_reason reason;
@@ -45,4 +46,9 @@ typedef struct {
 /* Execute at most max_steps instructions; zero is a valid no-op limit. */
 ppcvm_run_report ppcvm_cpu_run_bus(ppcvm_cpu *cpu, ppcvm_bus *bus,
                                     uint64_t max_steps);
+/* PPCVM-only opt-in diagnostic stop word, not a PowerPC HALT opcode.
+   HALT leaves PC pointing at the marker and is not counted as executed. */
+#define PPCVM_DIAGNOSTIC_HALT UINT32_C(0x00000000)
+ppcvm_run_report ppcvm_cpu_run_bus_diagnostic(ppcvm_cpu *cpu,
+    ppcvm_bus *bus, uint64_t max_steps);
 #endif
