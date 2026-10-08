@@ -390,3 +390,7 @@ add_test(NAME pci_mmio COMMAND test_pci_mmio)
 add_executable(test_pci_cpu_bus tests/test_pci_cpu_bus.c)
 target_link_libraries(test_pci_cpu_bus PRIVATE ppcvm_core)
 add_test(NAME pci_cpu_bus COMMAND test_pci_cpu_bus)
+
+add_executable(test_pci_cpu_instructions tests/test_pci_cpu_instructions.c)
+target_link_libraries(test_pci_cpu_instructions PRIVATE ppcvm_core)
+add_test(NAME pci_cpu_instructions COMMAND test_pci_cpu_instructions)
