@@ -5,6 +5,12 @@ int main(void) {
   ppcvm_bus bus;
   ppcvm_discovery_ii controller;
   uint32_t value=0x12345678u;
+  assert(ppcvm_discovery_ii_swap32(0x12345678u)==0x78563412u);
+  assert(ppcvm_discovery_ii_swap32(0x80000000u)==0x00000080u);
+  assert(ppcvm_discovery_ii_swap32(0x00000001u)==0x01000000u);
+  assert(ppcvm_discovery_ii_swap32(0u)==0u);
+  assert(ppcvm_discovery_ii_swap32(0xffffffffu)==0xffffffffu);
+  assert(ppcvm_discovery_ii_swap32(ppcvm_discovery_ii_swap32(0xa1b2c3d4u))==0xa1b2c3d4u);
   ppcvm_bus_init(&bus);
   ppcvm_discovery_ii_init(&controller);
   assert(controller.reset_count==0 && controller.unsupported_reads==0);
