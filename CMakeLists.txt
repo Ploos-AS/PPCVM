@@ -270,3 +270,7 @@ add_test(NAME pegasos2_reset COMMAND test_pegasos2_reset)
 add_executable(test_pegasos2_cold_reset tests/test_pegasos2_cold_reset.c)
 target_link_libraries(test_pegasos2_cold_reset PRIVATE ppcvm_core)
 add_test(NAME pegasos2_cold_reset COMMAND test_pegasos2_cold_reset)
+
+add_executable(test_pegasos2_cold_boot tests/test_pegasos2_cold_boot.c)
+target_link_libraries(test_pegasos2_cold_boot PRIVATE ppcvm_core)
+add_test(NAME pegasos2_cold_boot COMMAND test_pegasos2_cold_boot)
