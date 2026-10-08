@@ -21,7 +21,14 @@ PCI, storage, display, networking, sound, input, snapshots and repeatable CI qua
 ## M5 – AROS PPC hardware profile
 Sam460ex or verified supported board/port; prove boot and program execution. AROS PPC is **P0** despite using a second machine.
 
-## M6+ – Expansion
+## M6 – Sam family (after Pegasos II qualification)
+- [ ] Shared PPC 440EP core and peripherals for Sam440ep and Sam440ep-Flex.
+- [ ] Separate Sam440ep and Sam440ep-Flex board profiles.
+- [ ] PPC 460EX core and Sam460ex board profile.
+- [ ] Confirm OS and firmware support separately for each board; never infer boot compatibility from CPU family alone.
+- [ ] Keep Pegasos II as the only active first-machine implementation until its boot/runtime gates pass.
+
+## M7+ – Expansion
 Sam460cr, appropriate Power Mac profiles (OpenBSD/macppc), AmigaOne, Efika, Genesi ODW, Mirari T1042; JIT and appliance images.
 
 ## Guest priority and qualification
