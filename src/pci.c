@@ -242,3 +242,26 @@ int ppcvm_pci_bus_mmio_write32(ppcvm_pci_bus *b,uint64_t address,uint32_t value)
   if(!slot || !slot->mmio_write32) return -1;
   return slot->mmio_write32(slot->mmio_context,hit.bar_index,hit.offset,value);
 }
+
+static ppcvm_bus_result pci_aperture_read(void *context,uint32_t offset,uint32_t *value) {
+  ppcvm_pci_mmio_aperture *a=(ppcvm_pci_mmio_aperture *)context;
+  return ppcvm_pci_bus_mmio_read32(a->pci,(uint64_t)a->base+offset,value)==0 ?
+    PPCVM_BUS_OK : PPCVM_BUS_UNMAPPED;
+}
+static ppcvm_bus_result pci_aperture_write(void *context,uint32_t offset,uint32_t value) {
+  ppcvm_pci_mmio_aperture *a=(ppcvm_pci_mmio_aperture *)context;
+  return ppcvm_pci_bus_mmio_write32(a->pci,(uint64_t)a->base+offset,value)==0 ?
+    PPCVM_BUS_OK : PPCVM_BUS_UNMAPPED;
+}
+ppcvm_bus_result ppcvm_pci_map_mmio_aperture(ppcvm_bus *cpu_bus,
+    ppcvm_pci_mmio_aperture *aperture,ppcvm_pci_bus *pci,
+    uint32_t base,uint32_t size) {
+  if(!cpu_bus || !aperture || !pci || !size || (base&3u) ||
+     (size&3u) || (uint64_t)base+size>UINT64_C(0x100000000))
+    return PPCVM_BUS_INVALID;
+  /* The caller must keep both the aperture and PCI registry alive. */
+  aperture->pci=pci;
+  aperture->base=base;
+  return ppcvm_bus_map_mmio32(cpu_bus,base,size,aperture,
+                              pci_aperture_read,pci_aperture_write);
+}
