@@ -17,5 +17,7 @@ typedef struct {
   uint32_t discovery_writes;
 } ppcvm_pegasos2;
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *machine, size_t ram_size);
+/* Fetches one big-endian instruction from mapped memory and executes it. */
+ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *machine);
 void ppcvm_pegasos2_destroy(ppcvm_pegasos2 *machine);
 #endif
