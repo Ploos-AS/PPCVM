@@ -79,6 +79,28 @@ ppcvm_result ppcvm_pegasos2_step_bat_fetch(ppcvm_pegasos2 *m) {
   return ppcvm_cpu_step_bus_dsi(&m->cpu,&m->bus,instruction);
 }
 
+/* BAT SPR numbers: IBAT0U/L..IBAT3U/L = 528..535,
+   DBAT0U/L..DBAT3U/L = 536..543. Supervisor-only. */
+static ppcvm_result bat_spr_step(ppcvm_pegasos2 *m, uint32_t insn) {
+  if ((insn>>26)!=31u) return PPCVM_UNSUPPORTED;
+  uint32_t xo=(insn>>1)&1023u;
+  if (xo!=339u && xo!=467u) return PPCVM_UNSUPPORTED;
+  uint32_t spr=((insn>>16)&31u)|(((insn>>11)&31u)<<5);
+  if (spr<528u || spr>543u) return PPCVM_UNSUPPORTED;
+  if ((insn&1u) || (m->cpu.msr&UINT32_C(0x4000))) return PPCVM_UNSUPPORTED;
+  unsigned idx=(spr-528u)/2u;
+  uint32_t *reg;
+  if (idx<4u) reg=(spr&1u)?&m->bat.ibatl[idx]:&m->bat.ibatu[idx];
+  else {
+    idx-=4u;
+    reg=(spr&1u)?&m->bat.dbatl[idx]:&m->bat.dbatu[idx];
+  }
+  unsigned rt=(insn>>21)&31u;
+  if (xo==339u) m->cpu.gpr[rt]=*reg;
+  else *reg=m->cpu.gpr[rt];
+  m->cpu.pc+=4;
+  return PPCVM_OK;
+}
 ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
   if (!m || (m->cpu.pc&3u)) return PPCVM_MEMORY_FAULT;
   uint32_t physical=0, instruction=0;
@@ -89,6 +111,12 @@ ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
     return PPCVM_OK;
   }
   uint32_t op=instruction>>26;
+  if (op==31u) {
+    uint32_t spr=((instruction>>16)&31u)|(((instruction>>11)&31u)<<5);
+    uint32_t xo=(instruction>>1)&1023u;
+    if ((xo==339u || xo==467u) && spr>=528u && spr<=543u)
+      return bat_spr_step(m,instruction);
+  }
   if (op!=32 && op!=34 && op!=36 && op!=38)
     return ppcvm_cpu_step(&m->cpu,instruction);
   uint32_t rt=(instruction>>21)&31u, ra=(instruction>>16)&31u;
