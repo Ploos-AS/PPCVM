@@ -2,6 +2,7 @@
 #define PPCVM_PCI_H
 #include <stdint.h>
 #include <stddef.h>
+#include "ppcvm/bus.h"
 #define PPCVM_PCI_CONFIG_SIZE 256u
 typedef struct {
   uint8_t config[PPCVM_PCI_CONFIG_SIZE];
@@ -69,4 +70,12 @@ int ppcvm_pci_bus_mmio_read32(ppcvm_pci_bus *bus, uint64_t address,
                                uint32_t *value);
 int ppcvm_pci_bus_mmio_write32(ppcvm_pci_bus *bus, uint64_t address,
                                 uint32_t value);
+/* Fixed 32-bit CPU bus aperture forwarding to PCI BAR decode. */
+typedef struct {
+  ppcvm_pci_bus *pci;
+  uint32_t base;
+} ppcvm_pci_mmio_aperture;
+ppcvm_bus_result ppcvm_pci_map_mmio_aperture(ppcvm_bus *cpu_bus,
+    ppcvm_pci_mmio_aperture *aperture, ppcvm_pci_bus *pci,
+    uint32_t base, uint32_t size);
 #endif
