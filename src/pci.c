@@ -10,7 +10,7 @@ void ppcvm_pci_device_init(ppcvm_pci_device *d,uint16_t vendor,uint16_t product,
 }
 int ppcvm_pci_set_mem_bar32(ppcvm_pci_device *d,unsigned index,
                              uint32_t size,uint32_t base) {
-  if(!d || index>=6u || size<16u || (size&(size-1u)) ||
+  if(!d || index>=6u || d->bar64[index] || (index>0u && d->bar64[index-1u]) || size<16u || (size&(size-1u)) ||
      (base&(size-1u))) return -1;
   d->bar_size[index]=size;
   d->bar_probe[index]=0;
@@ -22,7 +22,7 @@ int ppcvm_pci_set_mem_bar32(ppcvm_pci_device *d,unsigned index,
 }
 int ppcvm_pci_set_io_bar32(ppcvm_pci_device *d,unsigned index,
                             uint32_t size,uint32_t base) {
-  if(!d || index>=6u || size<4u || (size&(size-1u)) ||
+  if(!d || index>=6u || d->bar64[index] || (index>0u && d->bar64[index-1u]) || size<4u || (size&(size-1u)) ||
      (base&(size-1u))) return -1;
   d->bar_size[index]=size;
   d->bar_probe[index]=0;
@@ -32,10 +32,37 @@ int ppcvm_pci_set_io_bar32(ppcvm_pci_device *d,unsigned index,
   for(unsigned i=0;i<4;i++) p[i]=(uint8_t)(value>>(8u*i));
   return 0;
 }
+int ppcvm_pci_set_mem_bar64(ppcvm_pci_device *d,unsigned index,
+                             uint64_t size,uint64_t base) {
+  if(!d || index>=5u || size<16u || (size&(size-1u)) ||
+     (base&(size-1u)) || d->bar_size[index] || d->bar_size[index+1u] ||
+     d->bar64[index] || (index>0u && d->bar64[index-1u])) return -1;
+  d->bar64[index]=1;
+  d->bar64_size[index]=size;
+  d->bar_probe[index]=0;
+  d->bar_probe[index+1u]=0;
+  uint32_t lo=((uint32_t)base&UINT32_C(0xfffffff0))|4u;
+  uint32_t hi=(uint32_t)(base>>32);
+  for(unsigned i=0;i<4;i++) {
+    d->config[0x10u+index*4u+i]=(uint8_t)(lo>>(8u*i));
+    d->config[0x14u+index*4u+i]=(uint8_t)(hi>>(8u*i));
+  }
+  return 0;
+}
 int ppcvm_pci_read32(const ppcvm_pci_device *d,uint32_t offset,uint32_t *value) {
   if (!d || !value || (offset&3u) || offset>252u) return -1;
   if(offset>=0x10u && offset<=0x24u) {
     unsigned index=(offset-0x10u)/4u;
+    if(d->bar64[index] && d->bar_probe[index]) {
+      uint64_t mask=~(d->bar64_size[index]-UINT64_C(1));
+      *value=((uint32_t)mask&UINT32_C(0xfffffff0))|4u;
+      return 0;
+    }
+    if(index>0u && d->bar64[index-1u] && d->bar_probe[index]) {
+      uint64_t mask=~(d->bar64_size[index-1u]-UINT64_C(1));
+      *value=(uint32_t)(mask>>32);
+      return 0;
+    }
     if(d->bar_size[index] && d->bar_probe[index]) {
       *value=(~(d->bar_size[index]-1u) &
         (d->bar_io[index] ? UINT32_C(0xfffffffc) : UINT32_C(0xfffffff0))) |
@@ -53,7 +80,19 @@ int ppcvm_pci_write32(ppcvm_pci_device *d,uint32_t offset,uint32_t value) {
   if (offset==0u || offset==8u) return 0;
   if(offset>=0x10u && offset<=0x24u) {
     unsigned index=(offset-0x10u)/4u;
-    if(d->bar_size[index]) {
+    if(d->bar64[index] || (index>0u && d->bar64[index-1u])) {
+      unsigned owner=d->bar64[index] ? index : index-1u;
+      if(value==UINT32_MAX) {
+        d->bar_probe[index]=1;
+        return 0;
+      }
+      d->bar_probe[index]=0;
+      uint32_t mask=index==owner ?
+        (uint32_t)(~(d->bar64_size[owner]-UINT64_C(1)))&UINT32_C(0xfffffff0) :
+        (uint32_t)((~(d->bar64_size[owner]-UINT64_C(1)))>>32);
+      value &= mask;
+      if(index==owner) value |= 4u;
+    } else if(d->bar_size[index]) {
       if(value==UINT32_MAX) {
         d->bar_probe[index]=1;
         return 0;
