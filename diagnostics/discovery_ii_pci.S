@@ -19,6 +19,23 @@ _start:
     xor 8,5,7
     cmpwi 8,0
     bne failed
+    /* PCI1 is independent and contains a different device. */
+    stw 4,0xc78(3)
+    lwz 5,0xc78(3)
+    xor 8,5,4
+    cmpwi 8,0
+    bne failed
+    lwz 5,0xc7c(3)
+    lis 7,0xcdab
+    ori 7,7,0x01ef
+    xor 8,5,7
+    cmpwi 8,0
+    bne failed
+    /* PCI0 latch remains unchanged after PCI1 access. */
+    lwz 5,0xcf8(3)
+    xor 8,5,4
+    cmpwi 8,0
+    bne failed
     li 6,1
     .long 0
 failed:
