@@ -130,10 +130,13 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
         break;
       }
       if (xo!=339u && xo!=467u) return PPCVM_UNSUPPORTED;
-      if (spr!=8u && spr!=9u) return PPCVM_UNSUPPORTED; /* LR, CTR */
-      if (xo==339u) cpu->gpr[rt]=(spr==8u) ? cpu->lr : cpu->ctr;
-      else if (spr==8u) cpu->lr=cpu->gpr[rt];
-      else cpu->ctr=cpu->gpr[rt];
+      if (spr!=8u && spr!=9u && spr!=26u && spr!=27u) return PPCVM_UNSUPPORTED; /* LR CTR SRR0 SRR1 */
+      if (xo==339u) {
+        cpu->gpr[rt]=spr==8u ? cpu->lr : (spr==9u ? cpu->ctr : (spr==26u ? cpu->srr0 : cpu->srr1));
+      } else if (spr==8u) cpu->lr=cpu->gpr[rt];
+      else if (spr==9u) cpu->ctr=cpu->gpr[rt];
+      else if (spr==26u) cpu->srr0=cpu->gpr[rt];
+      else cpu->srr1=cpu->gpr[rt];
       break;
     }
     case 18: { /* b */
