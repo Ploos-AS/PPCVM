@@ -128,8 +128,9 @@ ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
   uint32_t ea=(ra?m->cpu.gpr[ra]:0u)+(uint32_t)(int32_t)(int16_t)(instruction&0xffffu);
   if ((op==32 || op==36) && (ea&3u)) return PPCVM_MEMORY_FAULT;
   ppcvm_access access=(op==36 || op==38)?PPCVM_ACCESS_DATA_WRITE:PPCVM_ACCESS_DATA_READ;
-  if (ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,ea,access,&physical)!=PPCVM_MMU_OK)
-    goto fault;
+  ppcvm_mmu_result translation=ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,ea,access,&physical);
+  if (translation==PPCVM_MMU_PROTECTION) goto protection_fault;
+  if (translation!=PPCVM_MMU_OK) goto fault;
   ppcvm_bus_result status;
   uint32_t word=0;
   uint8_t byte=0;
@@ -149,6 +150,12 @@ ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
     if (status!=PPCVM_BUS_OK) goto fault;
   }
   m->cpu.pc+=4;
+  return PPCVM_OK;
+protection_fault:
+  m->cpu.dar=ea;
+  /* Protection violation: DSISR bit 27, plus store indicator bit 25. */
+  m->cpu.dsisr=(access==PPCVM_ACCESS_DATA_WRITE)?UINT32_C(0x0a000000):UINT32_C(0x08000000);
+  ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_DSI,m->cpu.pc);
   return PPCVM_OK;
 fault:
   m->cpu.dar=ea;
