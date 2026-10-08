@@ -270,6 +270,21 @@ ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *m) {
   return ppcvm_cpu_step_bus(&m->cpu,&m->bus,instruction);
 }
 
+ppcvm_result ppcvm_pegasos2_step_firmware(ppcvm_pegasos2 *m) {
+  uint32_t insn=0;
+  if (!m || (m->cpu.pc&3u) ||
+      ppcvm_bus_read32be(&m->bus,m->cpu.pc,&insn)!=PPCVM_BUS_OK)
+    return PPCVM_MEMORY_FAULT;
+  /* PPCVM-specific sc convention, not a real firmware system call. */
+  if (insn!=UINT32_C(0x44000002) ||
+      m->cpu.gpr[3]!=PPCVM_PEGASOS2_BOOT_MAGIC)
+    return ppcvm_cpu_step_bus(&m->cpu,&m->bus,insn);
+  ppcvm_result result=ppcvm_pegasos2_firmware_mailbox(m,m->cpu.gpr[4]);
+  if (result==PPCVM_MEMORY_FAULT) return result;
+  m->cpu.gpr[3]=(result==PPCVM_OK)?0u:1u;
+  m->cpu.pc+=4u;
+  return PPCVM_OK;
+}
 ppcvm_result ppcvm_pegasos2_step_isi(ppcvm_pegasos2 *m) {
   if (!m) return PPCVM_MEMORY_FAULT;
   uint32_t instruction=0;
