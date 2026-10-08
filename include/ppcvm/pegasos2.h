@@ -1,6 +1,7 @@
 #ifndef PPCVM_PEGASOS2_H
 #define PPCVM_PEGASOS2_H
 #include "ppcvm/bus.h"
+#include "ppcvm/discovery_ii.h"
 #include "ppcvm/cpu.h"
 #include "ppcvm/memory.h"
 #include "ppcvm/mmu.h"
@@ -15,6 +16,7 @@ typedef struct {
   ppcvm_bus bus;
   ppcvm_bat_state bat;
   ppcvm_segment_state segments;
+  ppcvm_discovery_ii discovery_ii;
   uint32_t discovery_scratch;
   uint32_t discovery_reads;
   uint32_t discovery_writes;
@@ -36,6 +38,9 @@ ppcvm_result ppcvm_pegasos2_firmware_mailbox(ppcvm_pegasos2 *machine,
     uint32_t address);
 /* Map caller-owned, read-only diagnostic/firmware bytes at the high vector prefix. */
 ppcvm_bus_result ppcvm_pegasos2_map_high_rom(ppcvm_pegasos2 *machine, uint8_t *bytes, uint32_t size);
+/* Opt-in M4 controller aperture; base/size are test-selected, not board defaults. */
+ppcvm_bus_result ppcvm_pegasos2_map_discovery_ii(ppcvm_pegasos2 *machine,
+    uint32_t base,uint32_t size);
 /* Reset CPU and synthetic device state without clearing RAM or ROM mappings. */
 void ppcvm_pegasos2_reset(ppcvm_pegasos2 *machine);
 /* Diagnostic cold reset: clear RAM and MMU configuration, preserve bus/ROM maps. */
