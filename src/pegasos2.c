@@ -140,7 +140,7 @@ static ppcvm_mmu_result update_pte_rc(ppcvm_pegasos2 *m, int keyed,
                                         uint32_t ea, ppcvm_access access,
                                         uint32_t *pa) {
   if (keyed) return ppcvm_mmu_lookup_pte_rc_keyed(&m->segments,&m->ram,m->cpu.msr,ea,access,pa);
-  return update_pte_rc(m,keyed,ea,access,pa);
+  return ppcvm_mmu_lookup_pte_rc(&m->segments,&m->ram,ea,access,pa);
 }
 static ppcvm_result step_translated(ppcvm_pegasos2 *m, int use_pte, int keyed) {
   if (!m || (m->cpu.pc&3u)) return PPCVM_MEMORY_FAULT;
