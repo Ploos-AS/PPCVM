@@ -418,3 +418,6 @@ add_test(NAME pci_elf_diagnostic COMMAND test_pci_elf_diagnostic)
 # The cross-assembled ELF is supplied as a CTest argument by the PowerPC CI job.
 add_executable(test_pci_selfcheck tests/test_pci_selfcheck.c)
 target_link_libraries(test_pci_selfcheck PRIVATE ppcvm_core)
+if(DEFINED PPCVM_PCI_SELFCHECK_ELF AND NOT "${PPCVM_PCI_SELFCHECK_ELF}" STREQUAL "")
+  add_test(NAME pci_selfcheck_guest COMMAND test_pci_selfcheck "${PPCVM_PCI_SELFCHECK_ELF}")
+endif()
