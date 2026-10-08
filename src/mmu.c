@@ -33,8 +33,11 @@ ppcvm_mmu_result ppcvm_mmu_translate_bat(const ppcvm_bat_state *state,
     if ((bl & (bl+1u))!=0u || !(upper[i]&valid)) continue;
     uint32_t mask=(bl<<17)|UINT32_C(0x1ffff);
     if ((ea & ~mask)!=(upper[i]&UINT32_C(0xfffe0000)&~mask)) continue;
-    /* BAT PP=00 denies access; other PP combinations need full privilege rules. */
-    if (access!=PPCVM_ACCESS_INSTRUCTION && (lower[i]&3u)==0u)
+    /* Initial BAT protection: PP=00 denies data; PP=01 denies writes.
+       Full key/privilege semantics remain to be modeled. */
+    uint32_t pp=lower[i]&3u;
+    if (access!=PPCVM_ACCESS_INSTRUCTION &&
+        (pp==0u || (pp==1u && access==PPCVM_ACCESS_DATA_WRITE)))
       return PPCVM_MMU_PROTECTION;
     *pa=(lower[i]&UINT32_C(0xfffe0000)&~mask)|(ea&mask);
     return PPCVM_MMU_OK;
