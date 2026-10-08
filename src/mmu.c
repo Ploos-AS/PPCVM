@@ -168,3 +168,21 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc(const ppcvm_segment_state *state,
   }
   return PPCVM_MMU_UNSUPPORTED;
 }
+
+/* 32-bit PowerPC hashed page-table protection matrix.
+   Key 0: PP 00/01/10 permit RW, 11 read-only.
+   Key 1: PP 00 denies, 01/11 read-only, 10 permits RW. */
+ppcvm_mmu_result ppcvm_mmu_check_pte_permission(uint32_t key, uint32_t pp,
+                                                 ppcvm_access access) {
+  if (key>1u || pp>3u ||
+      (access!=PPCVM_ACCESS_INSTRUCTION && access!=PPCVM_ACCESS_DATA_READ &&
+       access!=PPCVM_ACCESS_DATA_WRITE)) return PPCVM_MMU_UNSUPPORTED;
+  if (key==0u) {
+    if (pp==3u && access==PPCVM_ACCESS_DATA_WRITE)
+      return PPCVM_MMU_PROTECTION;
+    return PPCVM_MMU_OK;
+  }
+  if (pp==0u || (pp!=2u && access==PPCVM_ACCESS_DATA_WRITE))
+    return PPCVM_MMU_PROTECTION;
+  return PPCVM_MMU_OK;
+}
