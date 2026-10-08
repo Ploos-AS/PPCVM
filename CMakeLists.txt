@@ -318,3 +318,7 @@ add_test(NAME pegasos2_boot_abi COMMAND test_pegasos2_boot_abi)
 add_executable(test_pegasos2_boot_abi_atomic tests/test_pegasos2_boot_abi_atomic.c)
 target_link_libraries(test_pegasos2_boot_abi_atomic PRIVATE ppcvm_core)
 add_test(NAME pegasos2_boot_abi_atomic COMMAND test_pegasos2_boot_abi_atomic)
+
+add_executable(test_pegasos2_boot_abi_guest tests/test_pegasos2_boot_abi_guest.c)
+target_link_libraries(test_pegasos2_boot_abi_guest PRIVATE ppcvm_core)
+add_test(NAME pegasos2_boot_abi_guest COMMAND test_pegasos2_boot_abi_guest)
