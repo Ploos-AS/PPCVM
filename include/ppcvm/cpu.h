@@ -16,6 +16,8 @@ typedef struct {
 } ppcvm_cpu;
 typedef enum { PPCVM_OK = 0, PPCVM_UNSUPPORTED = 1, PPCVM_MEMORY_FAULT = 2 } ppcvm_result;
 /* Minimal low-vector exception entry. Caller supplies architected resume PC. */
+#define PPCVM_VECTOR_ISI UINT32_C(0x400)
+#define PPCVM_VECTOR_DSI UINT32_C(0x300)
 #define PPCVM_VECTOR_PROGRAM UINT32_C(0x700)
 #define PPCVM_VECTOR_SYSCALL UINT32_C(0xc00)
 void ppcvm_cpu_enter_exception(ppcvm_cpu *cpu, uint32_t vector, uint32_t resume_pc);
