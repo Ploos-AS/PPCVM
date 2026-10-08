@@ -62,6 +62,9 @@ ppcvm_result ppcvm_pegasos2_enter_ram(ppcvm_pegasos2 *machine, uint32_t entry);
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *machine, size_t ram_size);
 /* Fetches one big-endian instruction from mapped memory and executes it. */
 ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *machine);
+/* Opt-in synthetic trap: guest executes sc with r3=PVC1 magic and
+   r4=mailbox address. Only this step function intercepts the call. */
+ppcvm_result ppcvm_pegasos2_step_firmware(ppcvm_pegasos2 *machine);
 /* Opt-in prototype: instruction fetch faults enter ISI vector 0x400. */
 ppcvm_result ppcvm_pegasos2_step_isi(ppcvm_pegasos2 *machine);
 /* Opt-in combined ISI/DSI stepping; alignment remains an explicit fault. */
