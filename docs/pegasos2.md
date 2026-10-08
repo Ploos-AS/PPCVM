@@ -295,3 +295,12 @@ stopped at the limit, an unsupported instruction, a memory fault, or
 invalid arguments. A zero limit performs no instructions. The helper
 uses direct bus addressing without instruction MMU translation and
 is intended for diagnostics, not a complete machine scheduler.
+
+### Opt-in diagnostic halt
+
+`ppcvm_cpu_run_bus_diagnostic` recognizes the synthetic zero word
+`PPCVM_DIAGNOSTIC_HALT` as a stop marker. It reports `PPCVM_RUN_HALT`
+without executing or counting the marker, leaving PC at its address.
+The ordinary `ppcvm_cpu_run_bus` and CPU interpreter do not intercept
+this word. **This is not a PowerPC HALT instruction**, not firmware,
+and not enabled for normal guest execution.
