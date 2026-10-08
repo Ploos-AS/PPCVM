@@ -282,3 +282,7 @@ add_test(NAME pegasos2_firmware_handoff COMMAND test_pegasos2_firmware_handoff)
 add_executable(test_pegasos2_raw_loader tests/test_pegasos2_raw_loader.c)
 target_link_libraries(test_pegasos2_raw_loader PRIVATE ppcvm_core)
 add_test(NAME pegasos2_raw_loader COMMAND test_pegasos2_raw_loader)
+
+add_executable(test_pegasos2_elf32 tests/test_pegasos2_elf32.c)
+target_link_libraries(test_pegasos2_elf32 PRIVATE ppcvm_core)
+add_test(NAME pegasos2_elf32 COMMAND test_pegasos2_elf32)
