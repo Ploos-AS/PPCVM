@@ -17,6 +17,21 @@ int main(void) {
   assert(controller.unsupported_reads==1);
   assert(ppcvm_bus_write32be(&bus,0x80000004u,0xfeedbeefu)==PPCVM_BUS_UNMAPPED);
   assert(controller.unsupported_writes==1);
+  /* Candidate offsets remain inaccessible until MV64361 semantics are verified. */
+  const uint32_t candidates[]={
+    PPCVM_DISCOVERY_II_PCI0_CONFIG_ADDRESS_CANDIDATE,
+    PPCVM_DISCOVERY_II_PCI0_CONFIG_DATA_CANDIDATE,
+    PPCVM_DISCOVERY_II_PCI1_CONFIG_ADDRESS_CANDIDATE,
+    PPCVM_DISCOVERY_II_PCI1_CONFIG_DATA_CANDIDATE
+  };
+  for(unsigned i=0;i<sizeof(candidates)/sizeof(candidates[0]);i++) {
+    value=0x12345678u;
+    assert(ppcvm_bus_read32be(&bus,0x80000000u+candidates[i],&value)==PPCVM_BUS_UNMAPPED);
+    assert(value==0x12345678u);
+    assert(ppcvm_bus_write32be(&bus,0x80000000u+candidates[i],0x80001000u)==PPCVM_BUS_UNMAPPED);
+  }
+  assert(controller.unsupported_reads==5);
+  assert(controller.unsupported_writes==5);
   ppcvm_discovery_ii_reset(&controller);
   assert(controller.reset_count==1);
   assert(controller.unsupported_reads==0 && controller.unsupported_writes==0);
