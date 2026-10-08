@@ -33,16 +33,22 @@ jobs:
         run: |
           powerpc-linux-gnu-as -mppc -o build/diagnostics/pci_config_bridge.o diagnostics/pci_config_bridge.S
           powerpc-linux-gnu-ld -m elf32ppclinux -T diagnostics/pci_mmio.ld -o build/diagnostics/pci_config_bridge.elf build/diagnostics/pci_config_bridge.o
+      - name: Build guest PCI scan diagnostic
+        run: |
+          powerpc-linux-gnu-as -mppc -o build/diagnostics/pci_config_scan.o diagnostics/pci_config_scan.S
+          powerpc-linux-gnu-ld -m elf32ppclinux -T diagnostics/pci_mmio.ld -o build/diagnostics/pci_config_scan.elf build/diagnostics/pci_config_scan.o
       - name: Configure and build PPCVM integration test
         run: |
-          cmake -S . -B build/host -DCMAKE_BUILD_TYPE=Debug -DPPCVM_PCI_SELFCHECK_ELF=${{ github.workspace }}/build/diagnostics/pci_selfcheck.elf -DPPCVM_PCI_CONFIG_GUEST_ELF=${{ github.workspace }}/build/diagnostics/pci_config_bridge.elf
-          cmake --build build/host --target test_pci_elf_diagnostic test_pci_selfcheck test_pci_config_bridge_guest --parallel
+          cmake -S . -B build/host -DCMAKE_BUILD_TYPE=Debug -DPPCVM_PCI_SELFCHECK_ELF=${{ github.workspace }}/build/diagnostics/pci_selfcheck.elf -DPPCVM_PCI_CONFIG_GUEST_ELF=${{ github.workspace }}/build/diagnostics/pci_config_bridge.elf -DPPCVM_PCI_SCAN_GUEST_ELF=${{ github.workspace }}/build/diagnostics/pci_config_scan.elf
+          cmake --build build/host --target test_pci_elf_diagnostic test_pci_selfcheck test_pci_config_bridge_guest test_pci_config_scan_guest --parallel
       - name: Execute cross-built ELF in PPCVM
         run: build/host/test_pci_elf_diagnostic build/diagnostics/pci_mmio.elf
       - name: Execute guest-side PCI self-check success and failure paths
         run: ctest --test-dir build/host -R pci_selfcheck_guest --output-on-failure
       - name: Execute PowerPC guest PCI config bridge probe
         run: ctest --test-dir build/host -R pci_config_bridge_guest --output-on-failure
+      - name: Execute PowerPC guest PCI scan
+        run: ctest --test-dir build/host -R pci_config_scan_guest --output-on-failure
       - name: Check ELF diagnostic entry and instruction bytes
         run: |
           python3 - <<'PY'
