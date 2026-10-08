@@ -14,7 +14,20 @@ int ppcvm_pci_set_mem_bar32(ppcvm_pci_device *d,unsigned index,
      (base&(size-1u))) return -1;
   d->bar_size[index]=size;
   d->bar_probe[index]=0;
+  d->bar_io[index]=0;
   uint32_t value=base&UINT32_C(0xfffffff0);
+  uint8_t *p=d->config+0x10u+index*4u;
+  for(unsigned i=0;i<4;i++) p[i]=(uint8_t)(value>>(8u*i));
+  return 0;
+}
+int ppcvm_pci_set_io_bar32(ppcvm_pci_device *d,unsigned index,
+                            uint32_t size,uint32_t base) {
+  if(!d || index>=6u || size<4u || (size&(size-1u)) ||
+     (base&(size-1u))) return -1;
+  d->bar_size[index]=size;
+  d->bar_probe[index]=0;
+  d->bar_io[index]=1;
+  uint32_t value=(base&UINT32_C(0xfffffffc))|1u;
   uint8_t *p=d->config+0x10u+index*4u;
   for(unsigned i=0;i<4;i++) p[i]=(uint8_t)(value>>(8u*i));
   return 0;
@@ -24,7 +37,9 @@ int ppcvm_pci_read32(const ppcvm_pci_device *d,uint32_t offset,uint32_t *value) 
   if(offset>=0x10u && offset<=0x24u) {
     unsigned index=(offset-0x10u)/4u;
     if(d->bar_size[index] && d->bar_probe[index]) {
-      *value=~(d->bar_size[index]-1u)&UINT32_C(0xfffffff0);
+      *value=(~(d->bar_size[index]-1u) &
+        (d->bar_io[index] ? UINT32_C(0xfffffffc) : UINT32_C(0xfffffff0))) |
+        (d->bar_io[index] ? 1u : 0u);
       return 0;
     }
   }
@@ -45,7 +60,8 @@ int ppcvm_pci_write32(ppcvm_pci_device *d,uint32_t offset,uint32_t value) {
       }
       d->bar_probe[index]=0;
       value &= ~(d->bar_size[index]-1u);
-      value &= UINT32_C(0xfffffff0);
+      value &= d->bar_io[index] ? UINT32_C(0xfffffffc) : UINT32_C(0xfffffff0);
+      if(d->bar_io[index]) value |= 1u;
     }
   }
   uint8_t *p=d->config+offset;
