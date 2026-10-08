@@ -187,3 +187,29 @@ int ppcvm_pci_bus_decode_memory(const ppcvm_pci_bus *b,uint64_t address,
   if(found) *hit=candidate;
   return found ? 0 : 1;
 }
+
+int ppcvm_pci_bus_decode_io(const ppcvm_pci_bus *b,uint32_t address,
+                             ppcvm_pci_bar_hit *hit) {
+  if(!b || !hit) return -1;
+  int found=0;
+  ppcvm_pci_bar_hit candidate={0};
+  for(size_t n=0;n<b->count;n++) {
+    const ppcvm_pci_slot *slot=&b->slots[n];
+    const ppcvm_pci_device *d=&slot->config;
+    if(!(d->config[4]&1u)) continue; /* PCI Command: I/O Space Enable */
+    for(unsigned i=0;i<6;i++) {
+      if(!d->bar_size[i] || !d->bar_io[i]) continue;
+      uint32_t base=cfg32(d,i)&UINT32_C(0xfffffffc);
+      if(address<base || (uint64_t)address-base>=d->bar_size[i]) continue;
+      if(found) return -1;
+      found=1;
+      candidate.bus=slot->bus;
+      candidate.device=slot->device;
+      candidate.function=slot->function;
+      candidate.bar_index=(uint8_t)i;
+      candidate.offset=(uint64_t)address-base;
+    }
+  }
+  if(found) *hit=candidate;
+  return found ? 0 : 1;
+}
