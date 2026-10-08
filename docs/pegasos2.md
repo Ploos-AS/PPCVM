@@ -276,3 +276,12 @@ and `ori` through the reference interpreter. The store/load pair reaches
 a PCI MMIO callback and the final register copy verifies the value.
 The host test explicitly drives the fetch/step loop; this is not a
 firmware-driven guest boot or complete Pegasos II PCI implementation.
+
+### Reusable CPU bus fetch/execute step
+
+`ppcvm_cpu_step_bus_fetch(cpu,bus)` fetches one aligned big-endian
+PowerPC instruction from the CPU bus at `pc`, then executes it using
+`ppcvm_cpu_step_bus`. The PCI RAM-program regression now uses this API.
+Unmapped or unaligned instruction fetch returns a memory fault without
+advancing PC. This helper does not perform MMU instruction translation
+or deliver an ISI exception; it is intended for direct-mapped diagnostics.
