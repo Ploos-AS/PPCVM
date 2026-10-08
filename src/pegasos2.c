@@ -78,6 +78,9 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
     if (elf32(ph)!=1u) continue;
     uint32_t offset=elf32(ph+4), address=elf32(ph+12);
     uint32_t filesz=elf32(ph+16), memsz=elf32(ph+20);
+    uint32_t flags=elf32(ph+24), align=elf32(ph+28);
+    if ((flags & ~UINT32_C(7)) || (align && (align & (align-1u))) ||
+        (align>1u && ((offset ^ address) & (align-1u)))) return PPCVM_UNSUPPORTED;
     if (filesz>memsz || (size_t)offset>size ||
         (size_t)filesz>size-(size_t)offset ||
         (size_t)address>m->ram.size ||
