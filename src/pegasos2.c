@@ -72,6 +72,13 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
   if (!count || (size_t)phoff>size || (size_t)count>(size-(size_t)phoff)/32u ||
       (start&3u) || (size_t)start>m->ram.size ||
       m->ram.size-(size_t)start<4u) return PPCVM_MEMORY_FAULT;
+  /* The image must not alias writable guest RAM: segment copies can otherwise
+     overwrite program headers or later segment payloads during loading. */
+  {
+    uintptr_t src=(uintptr_t)image, dst=(uintptr_t)m->ram.data;
+    if (src<=UINTPTR_MAX-size && dst<=UINTPTR_MAX-m->ram.size &&
+        src<dst+m->ram.size && dst<src+size) return PPCVM_UNSUPPORTED;
+  }
   unsigned loaded=0, entry_ok=0;
   for (unsigned i=0;i<count;i++) {
     const uint8_t *ph=image+(size_t)phoff+(size_t)i*32u;
