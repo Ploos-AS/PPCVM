@@ -31,6 +31,9 @@ ppcvm_mmu_result ppcvm_mmu_translate_bat(const ppcvm_bat_state *state,
     if ((bl & (bl+1u))!=0u || !(upper[i]&valid)) continue;
     uint32_t mask=(bl<<17)|UINT32_C(0x1ffff);
     if ((ea & ~mask)!=(upper[i]&UINT32_C(0xfffe0000)&~mask)) continue;
+    /* PP=00 forbids data access in this initial protection model. */
+    if (access!=PPCVM_ACCESS_INSTRUCTION && (lower[i]&3u)==0u)
+      return PPCVM_MMU_UNSUPPORTED;
     *pa=(lower[i]&UINT32_C(0xfffe0000)&~mask)|(ea&mask);
     return PPCVM_MMU_OK;
   }
