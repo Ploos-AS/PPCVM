@@ -126,3 +126,7 @@ add_test(NAME pegasos2_bat_data COMMAND test_pegasos2_bat_data)
 add_executable(test_pegasos2_bat_spr tests/test_pegasos2_bat_spr.c)
 target_link_libraries(test_pegasos2_bat_spr PRIVATE ppcvm_core)
 add_test(NAME pegasos2_bat_spr COMMAND test_pegasos2_bat_spr)
+
+add_executable(test_mmu_bat_pp tests/test_mmu_bat_pp.c)
+target_link_libraries(test_mmu_bat_pp PRIVATE ppcvm_core)
+add_test(NAME mmu_bat_pp COMMAND test_mmu_bat_pp)
