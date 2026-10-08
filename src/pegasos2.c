@@ -19,6 +19,17 @@ ppcvm_bus_result ppcvm_pegasos2_map_high_rom(ppcvm_pegasos2 *m, uint8_t *bytes, 
   if (!m || !bytes || size < UINT32_C(0x1000) || size > UINT32_C(0x100000)) return PPCVM_BUS_INVALID;
   return ppcvm_bus_map_memory(&m->bus,UINT32_C(0xfff00000),size,bytes,1);
 }
+ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *m, uint32_t entry) {
+  uint32_t instruction=0;
+  if (!m || (entry & 3u) || entry < UINT32_C(0xfff00000) ||
+      ppcvm_bus_read32be(&m->bus,entry,&instruction)!=PPCVM_BUS_OK)
+    return PPCVM_MEMORY_FAULT;
+  /* This is an explicit test boot entry, not a hardware reset-vector model. */
+  ppcvm_cpu_reset(&m->cpu);
+  m->cpu.pc=entry;
+  m->cpu.msr=UINT32_C(0x40); /* high exception prefix */
+  return PPCVM_OK;
+}
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *m, size_t ram_size) {
   if (!m || !ram_size || ram_size > UINT32_C(0xf0000000)) return -1;
   memset(m,0,sizeof(*m));
