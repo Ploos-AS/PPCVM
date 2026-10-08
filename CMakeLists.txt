@@ -194,3 +194,7 @@ add_test(NAME pegasos2_pte_bus_fault COMMAND test_pegasos2_pte_bus_fault)
 add_executable(test_mmu_pte_keys tests/test_mmu_pte_keys.c)
 target_link_libraries(test_mmu_pte_keys PRIVATE ppcvm_core)
 add_test(NAME mmu_pte_keys COMMAND test_mmu_pte_keys)
+
+add_executable(test_mmu_segment_keys tests/test_mmu_segment_keys.c)
+target_link_libraries(test_mmu_segment_keys PRIVATE ppcvm_core)
+add_test(NAME mmu_segment_keys COMMAND test_mmu_segment_keys)
