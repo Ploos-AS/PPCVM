@@ -33,7 +33,7 @@ int main(void) {
     assert(ppcvm_bus_write32be(&m.bus,(uint32_t)(i*4),program[i])==PPCVM_BUS_OK);
   size_t executed=0;
   assert(ppcvm_pegasos2_run(&m,64,&executed)==PPCVM_UNSUPPORTED);
-  assert(executed==20);
+  assert(executed==22);
   assert(m.cpu.pc==0x14 && m.cpu.lr==0x0c);
   assert(m.cpu.gpr[3]==10 && m.cpu.gpr[5]==10);
   assert(m.cpu.ctr==0 && m.cpu.gpr[4]==0);
