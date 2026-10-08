@@ -159,3 +159,14 @@ behavior is preserved in standard stepping. New fields and services
 must be added without reinterpreting these existing IDs or offsets.
 This is a **prototype diagnostic ABI**, not an Open Firmware ABI or a
 claim of OS boot compatibility.
+
+### Generic PCI configuration groundwork (M3)
+
+`include/ppcvm/pci.h` and `src/pci.c` provide a standalone 256-byte
+PCI configuration header model. Config dword accesses use **PCI little-
+endian** byte order, independent of the big-endian PowerPC CPU. Vendor,
+device, class and revision identification are immutable through this
+prototype write API; other aligned dwords are currently plain storage.
+No BAR sizing, command-register masks, PCI bus enumeration, interrupts,
+chipset address decoding or verified Pegasos II device IDs are modeled.
+The generic PCI model is **not wired into the Pegasos II bus yet**.
