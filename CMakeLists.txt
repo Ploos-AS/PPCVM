@@ -178,3 +178,7 @@ add_test(NAME pegasos2_pte_data COMMAND test_pegasos2_pte_data)
 add_executable(test_mmu_pte_rc tests/test_mmu_pte_rc.c)
 target_link_libraries(test_mmu_pte_rc PRIVATE ppcvm_core)
 add_test(NAME mmu_pte_rc COMMAND test_mmu_pte_rc)
+
+add_executable(test_pegasos2_pte_rc tests/test_pegasos2_pte_rc.c)
+target_link_libraries(test_pegasos2_pte_rc PRIVATE ppcvm_core)
+add_test(NAME pegasos2_pte_rc COMMAND test_pegasos2_pte_rc)
