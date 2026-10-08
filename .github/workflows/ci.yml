@@ -25,6 +25,10 @@ jobs:
           mkdir -p build/diagnostics
           powerpc-linux-gnu-as -mppc -o build/diagnostics/pci_mmio.o diagnostics/pci_mmio.S
           powerpc-linux-gnu-ld -m elf32ppclinux -T diagnostics/pci_mmio.ld -o build/diagnostics/pci_mmio.elf build/diagnostics/pci_mmio.o
+      - name: Build self-checking PowerPC diagnostic
+        run: |
+          powerpc-linux-gnu-as -mppc -o build/diagnostics/pci_selfcheck.o diagnostics/pci_selfcheck.S
+          powerpc-linux-gnu-ld -m elf32ppclinux -T diagnostics/pci_mmio.ld -o build/diagnostics/pci_selfcheck.elf build/diagnostics/pci_selfcheck.o
       - name: Configure and build PPCVM integration test
         run: |
           cmake -S . -B build/host -DCMAKE_BUILD_TYPE=Debug
