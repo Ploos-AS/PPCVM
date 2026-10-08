@@ -402,3 +402,7 @@ add_test(NAME pci_ram_program COMMAND test_pci_ram_program)
 add_executable(test_cpu_fetch tests/test_cpu_fetch.c)
 target_link_libraries(test_cpu_fetch PRIVATE ppcvm_core)
 add_test(NAME cpu_fetch COMMAND test_cpu_fetch)
+
+add_executable(test_cpu_run tests/test_cpu_run.c)
+target_link_libraries(test_cpu_run PRIVATE ppcvm_core)
+add_test(NAME cpu_run COMMAND test_cpu_run)
