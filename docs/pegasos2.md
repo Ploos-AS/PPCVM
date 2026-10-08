@@ -104,3 +104,12 @@ big-endian record at `info_address` contains magic, record length, RAM size,
 and entry. The record must be word-aligned, fit in RAM and not overlap any
 ELF `PT_LOAD` memory region. This is a PPCVM-only diagnostic convention,
 **not** Open Firmware, CHRP, or a MorphOS/AmigaOS boot ABI.
+
+### Extended diagnostic record (v2)
+
+`ppcvm_pegasos2_boot_elf32_abi_v2` preserves the first four big-endian
+words of PVC1 and extends the record to 32 bytes. Word offsets `+16`,
+`+20`, `+24`, `+28` contain version `2`, flags `0`, reserved service
+pointer `0`, and reserved `0`. The full 32-byte record is protected
+against overlaps with ELF segments. These fields are reserved for future
+work; no firmware services are implemented by this record.
