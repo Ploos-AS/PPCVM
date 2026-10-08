@@ -33,8 +33,11 @@ jobs:
         run: |
           cmake -S . -B build/host -DCMAKE_BUILD_TYPE=Debug
           cmake --build build/host --target test_pci_elf_diagnostic --parallel
+          cc -std=c11 -Iinclude tests/test_pci_selfcheck.c build/host/libppcvm_core.a -o build/host/test_pci_selfcheck
       - name: Execute cross-built ELF in PPCVM
         run: build/host/test_pci_elf_diagnostic build/diagnostics/pci_mmio.elf
+      - name: Execute guest-side PCI self-check success and failure paths
+        run: build/host/test_pci_selfcheck build/diagnostics/pci_selfcheck.elf
       - name: Check ELF diagnostic entry and instruction bytes
         run: |
           python3 - <<'PY'
