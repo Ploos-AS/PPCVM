@@ -53,6 +53,12 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_keyed(const ppcvm_segment_state *state,
                                              const ppcvm_memory *ram,
                                              uint32_t msr, uint32_t ea,
                                              ppcvm_access access, uint32_t *pa);
+/* Key-aware mutable PTE walk. Updates R/C on permitted translation.
+   Call after a successful bus access when used by the CPU. */
+ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc_keyed(const ppcvm_segment_state *state,
+                                                ppcvm_memory *ram, uint32_t msr,
+                                                uint32_t ea, ppcvm_access access,
+                                                uint32_t *pa);
 /* Opt-in mutable PTE walk: set R (bit 8) on reads/fetches and R+C
    (bits 8,7) on writes after a permitted translation. CPU stepping uses this after successful bus accesses; segment keys are\n   not yet wired into the CPU translation path. */
 ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc(const ppcvm_segment_state *state,
