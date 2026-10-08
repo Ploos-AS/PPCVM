@@ -27,6 +27,8 @@ void ppcvm_pegasos2_reset(ppcvm_pegasos2 *machine);
 void ppcvm_pegasos2_cold_reset(ppcvm_pegasos2 *machine);
 /* Start at a mapped high-ROM instruction address; reset CPU only. */
 ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t entry);
+/* Validate ROM entry, then cold-reset machine and begin execution there. */
+ppcvm_result ppcvm_pegasos2_cold_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t entry);
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *machine, size_t ram_size);
 /* Fetches one big-endian instruction from mapped memory and executes it. */
 ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *machine);
