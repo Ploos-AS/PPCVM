@@ -257,3 +257,13 @@ The caller must choose an address range that does not overlap RAM/ROM
 or other MMIO. This is an opt-in prototype, not a validated Pegasos II
 PCI host-bridge aperture. Byte accesses and 64-bit CPU addresses are
 not supported by this adapter.
+
+### PowerPC instruction-to-PCI regression
+
+`test_pci_cpu_instructions` executes encoded PowerPC `stw` and `lwz`
+through `ppcvm_cpu_step_bus`, the 32-bit CPU MMIO aperture, PCI BAR
+address decode, and a registered virtual device callback. It checks
+that PCI Command Memory Space Enable gates both operations and that
+register values round-trip. Instructions are supplied by the host test;
+this is not yet a guest firmware or OS boot, and the adapter does not
+implement a real Pegasos II PCI host bridge.
