@@ -47,6 +47,12 @@ ppcvm_mmu_result ppcvm_mmu_check_pte_permission(uint32_t key, uint32_t pp,
 ppcvm_mmu_result ppcvm_mmu_segment_key(const ppcvm_segment_state *state,
                                         uint32_t msr, uint32_t ea,
                                         uint32_t *key);
+/* Key-aware PTE walk; legacy lookup remains unchanged for compatibility.
+   R/C updates are not performed by this read-only variant. */
+ppcvm_mmu_result ppcvm_mmu_lookup_pte_keyed(const ppcvm_segment_state *state,
+                                             const ppcvm_memory *ram,
+                                             uint32_t msr, uint32_t ea,
+                                             ppcvm_access access, uint32_t *pa);
 /* Opt-in mutable PTE walk: set R (bit 8) on reads/fetches and R+C
    (bits 8,7) on writes after a permitted translation. CPU stepping uses this after successful bus accesses; segment keys are\n   not yet wired into the CPU translation path. */
 ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc(const ppcvm_segment_state *state,
