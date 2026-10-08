@@ -12,8 +12,8 @@ typedef struct {
   uint32_t dbatu[4], dbatl[4];
 } ppcvm_bat_state;
 /* Supports 128 KiB to 256 MiB BAT blocks, VS/VP and physical block mapping.
-   PP=00 data access is rejected; remaining PP/WIMG semantics and page tables
-   are not yet implemented. */
+   PP=00 denies data and PP=01 is read-only in the current simplified model.
+   Full privilege/key semantics, WIMG and page tables are not implemented. */
 ppcvm_mmu_result ppcvm_mmu_translate_bat(const ppcvm_bat_state *state,
                                          uint32_t msr, uint32_t ea,
                                          ppcvm_access access, uint32_t *pa);
