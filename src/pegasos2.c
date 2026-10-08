@@ -42,3 +42,14 @@ ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *m) {
     return PPCVM_MEMORY_FAULT;
   return ppcvm_cpu_step_bus(&m->cpu,&m->bus,instruction);
 }
+
+ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *m, size_t limit, size_t *executed) {
+  if (executed) *executed=0;
+  if (!m) return PPCVM_MEMORY_FAULT;
+  for (size_t i=0; i<limit; ++i) {
+    ppcvm_result result=ppcvm_pegasos2_step(m);
+    if (result != PPCVM_OK) return result;
+    if (executed) *executed=i+1;
+  }
+  return PPCVM_OK;
+}
