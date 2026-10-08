@@ -18,6 +18,22 @@ ppcvm_result ppcvm_pegasos2_firmware_query(const ppcvm_pegasos2 *m,
   *value=result;
   return PPCVM_OK;
 }
+ppcvm_result ppcvm_pegasos2_firmware_mailbox(ppcvm_pegasos2 *m,
+    uint32_t address) {
+  if (!m || !m->ram.data || (address & 3u) ||
+      (uint64_t)address+PPCVM_PEGASOS2_FW_MAILBOX_SIZE>m->ram.size)
+    return PPCVM_MEMORY_FAULT;
+  uint32_t selector=0, value=0;
+  if (ppcvm_memory_read32be(&m->ram,address,&selector)!=PPCVM_MEM_OK)
+    return PPCVM_MEMORY_FAULT;
+  ppcvm_result result=ppcvm_pegasos2_firmware_query(m,selector,&value);
+  /* Commit response after all bounds checks; never modify request words. */
+  ppcvm_memory_write32be(&m->ram,address+8u,
+      result==PPCVM_OK ? value : 0u);
+  ppcvm_memory_write32be(&m->ram,address+12u,
+      result==PPCVM_OK ? 0u : (result==PPCVM_UNSUPPORTED ? 1u : 2u));
+  return result;
+}
 /* Scratch register is a synthetic diagnostic placeholder, not a Discovery II register. */
 static ppcvm_bus_result discovery_read(void *context, uint32_t offset, uint32_t *value) {
   ppcvm_pegasos2 *m=(ppcvm_pegasos2 *)context;
