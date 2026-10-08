@@ -19,7 +19,7 @@ int main(void) {
   assert(ppcvm_cpu_step(&c, I(28,7,8,0)) == PPCVM_OK);
   assert(c.gpr[8] == 0 && (c.cr >> 28) == 2);
   c.pc = 0x100;
-  assert(ppcvm_cpu_step(&c, (18u<<26)|0xfffffffcu) == PPCVM_OK);
+  assert(ppcvm_cpu_step(&c, (18u<<26)|0x03fffffcu) == PPCVM_OK);
   assert(c.pc == 0xfc);
   assert(ppcvm_cpu_step(&c, (18u<<26)|8u|1u) == PPCVM_OK);
   assert(c.lr == 0x100 && c.pc == 0x104);
