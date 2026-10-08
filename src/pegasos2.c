@@ -54,6 +54,23 @@ ppcvm_result ppcvm_pegasos2_cold_boot_high_rom(ppcvm_pegasos2 *m, uint32_t entry
   m->cpu.msr=UINT32_C(0x40);
   return PPCVM_OK;
 }
+ppcvm_result ppcvm_pegasos2_load_raw(ppcvm_pegasos2 *m, uint32_t address,
+                                    const uint8_t *bytes, size_t size) {
+  if (!m || !bytes || !size || !m->ram.data || (size_t)address > m->ram.size ||
+      size > m->ram.size-(size_t)address) return PPCVM_MEMORY_FAULT;
+  /* Reject aliases into guest RAM itself; use memmove to support overlap. */
+  memmove(m->ram.data+(size_t)address,bytes,size);
+  return PPCVM_OK;
+}
+ppcvm_result ppcvm_pegasos2_enter_ram(ppcvm_pegasos2 *m, uint32_t entry) {
+  uint32_t instruction=0;
+  if (!m || (entry&3u) || !m->ram.data || (size_t)entry > m->ram.size ||
+      m->ram.size-(size_t)entry < 4u ||
+      ppcvm_bus_read32be(&m->bus,entry,&instruction)!=PPCVM_BUS_OK)
+    return PPCVM_MEMORY_FAULT;
+  m->cpu.pc=entry;
+  return PPCVM_OK;
+}
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *m, size_t ram_size) {
   if (!m || !ram_size || ram_size > UINT32_C(0xf0000000)) return -1;
   memset(m,0,sizeof(*m));
