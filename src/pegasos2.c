@@ -26,6 +26,13 @@ void ppcvm_pegasos2_reset(ppcvm_pegasos2 *m) {
   m->discovery_reads=0;
   m->discovery_writes=0;
 }
+void ppcvm_pegasos2_cold_reset(ppcvm_pegasos2 *m) {
+  if (!m) return;
+  ppcvm_pegasos2_reset(m);
+  if (m->ram.data) memset(m->ram.data,0,m->ram.size);
+  memset(&m->bat,0,sizeof(m->bat));
+  memset(&m->segments,0,sizeof(m->segments));
+}
 ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *m, uint32_t entry) {
   uint32_t instruction=0;
   if (!m || (entry & 3u) || entry < UINT32_C(0xfff00000) ||
