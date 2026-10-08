@@ -31,7 +31,9 @@ ppcvm_result ppcvm_pegasos2_firmware_mailbox(ppcvm_pegasos2 *m,
   ppcvm_memory_write32be(&m->ram,address+8u,
       result==PPCVM_OK ? value : 0u);
   ppcvm_memory_write32be(&m->ram,address+12u,
-      result==PPCVM_OK ? 0u : (result==PPCVM_UNSUPPORTED ? 1u : 2u));
+      result==PPCVM_OK ? PPCVM_PEGASOS2_FW_STATUS_OK :
+      (result==PPCVM_UNSUPPORTED ? PPCVM_PEGASOS2_FW_STATUS_UNSUPPORTED :
+       PPCVM_PEGASOS2_FW_STATUS_INVALID));
   return result;
 }
 /* Scratch register is a synthetic diagnostic placeholder, not a Discovery II register. */
