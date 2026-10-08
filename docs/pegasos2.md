@@ -311,3 +311,14 @@ marker after its three PowerPC instructions and runs with
 `PPCVM_RUN_HALT`, three executed instructions, PC at the marker,
 and exactly one PCI MMIO read and write. This remains a synthetic
 host-configured PCI test, not a booted guest operating system.
+
+### ELF32 PowerPC PCI diagnostic
+
+`test_pci_elf_diagnostic` constructs an ELF32 big-endian PowerPC ET_EXEC
+image with an executable PT_LOAD segment, boots it through the existing
+Pegasos II ELF loader, and runs its `stw`/`lwz`/`ori`/diagnostic-halt
+sequence through the bounded diagnostic runner. It checks PCI callback
+counts and register round-trip. The test builds ELF bytes on the host;
+it does not invoke an external PowerPC cross-compiler or boot real
+firmware. PCI registration, BAR configuration and guest register inputs
+are host-provided; this is not an OS boot.
