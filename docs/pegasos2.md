@@ -244,3 +244,16 @@ Only aligned 32-bit operations are supported. Missing callbacks,
 ambiguous ranges and unmapped addresses fail explicitly. This API is
 not yet connected to the PowerPC CPU bus, and callback values are
 host-native `uint32_t`; device-specific endian behavior is not modeled.
+
+### Optional CPU bus PCI MMIO aperture
+
+`ppcvm_pci_map_mmio_aperture` maps an explicitly chosen, fixed 32-bit
+aperture on `ppcvm_bus`. Aligned `read32be`/`write32be` accesses are
+forwarded to PCI memory BAR decoding and device callbacks. PCI Command
+Memory Space Enable is enforced. The aperture and PCI registry must
+outlive the CPU bus mapping. BAR relocation is visible only within the
+fixed aperture; it does not dynamically resize or move the mapping.
+The caller must choose an address range that does not overlap RAM/ROM
+or other MMIO. This is an opt-in prototype, not a validated Pegasos II
+PCI host-bridge aperture. Byte accesses and 64-bit CPU addresses are
+not supported by this adapter.
