@@ -14,4 +14,21 @@ int ppcvm_pci_read32(const ppcvm_pci_device *device, uint32_t offset,
                      uint32_t *value);
 int ppcvm_pci_write32(ppcvm_pci_device *device, uint32_t offset,
                       uint32_t value);
+/* Small standalone BDF registry; no physical host bridge attached. */
+#define PPCVM_PCI_MAX_DEVICES 16u
+typedef struct {
+  uint8_t bus, device, function;
+  ppcvm_pci_device config;
+} ppcvm_pci_slot;
+typedef struct {
+  ppcvm_pci_slot slots[PPCVM_PCI_MAX_DEVICES];
+  size_t count;
+} ppcvm_pci_bus;
+void ppcvm_pci_bus_init(ppcvm_pci_bus *bus);
+int ppcvm_pci_bus_add(ppcvm_pci_bus *bus, uint8_t bus_number,
+    uint8_t device, uint8_t function, const ppcvm_pci_device *config);
+int ppcvm_pci_bus_read32(const ppcvm_pci_bus *bus, uint8_t bus_number,
+    uint8_t device, uint8_t function, uint32_t offset, uint32_t *value);
+int ppcvm_pci_bus_write32(ppcvm_pci_bus *bus, uint8_t bus_number,
+    uint8_t device, uint8_t function, uint32_t offset, uint32_t value);
 #endif
