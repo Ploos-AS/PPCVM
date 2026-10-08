@@ -98,3 +98,7 @@ add_test(NAME cpu_tw COMMAND test_cpu_tw)
 add_executable(test_pegasos2_isi tests/test_pegasos2_isi.c)
 target_link_libraries(test_pegasos2_isi PRIVATE ppcvm_core)
 add_test(NAME pegasos2_isi COMMAND test_pegasos2_isi)
+
+add_executable(test_cpu_dsi tests/test_cpu_dsi.c)
+target_link_libraries(test_cpu_dsi PRIVATE ppcvm_core)
+add_test(NAME cpu_dsi COMMAND test_cpu_dsi)
