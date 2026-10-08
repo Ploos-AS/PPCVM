@@ -37,6 +37,12 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_access(const ppcvm_segment_state *state,
                                               const ppcvm_memory *ram,
                                               uint32_t ea, ppcvm_access access,
                                               uint32_t *physical_address);
+/* Opt-in mutable PTE walk: set R (bit 8) on reads/fetches and R+C
+   (bits 8,7) on writes after a permitted translation. This is not yet
+   integrated with the CPU bus or full PowerPC key/permission semantics. */
+ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc(const ppcvm_segment_state *state,
+                                          ppcvm_memory *ram, uint32_t ea,
+                                          ppcvm_access access, uint32_t *pa);
 /* Combined opt-in translation: real mode, BAT, then hashed PTE fallback.
    PTE scan currently requires a flat physical RAM backing store. */
 ppcvm_mmu_result ppcvm_mmu_translate_combined(const ppcvm_bat_state *bat,
