@@ -33,6 +33,9 @@ int ppcvm_pci_write32(ppcvm_pci_device *device, uint32_t offset,
 typedef struct {
   uint8_t bus, device, function;
   ppcvm_pci_device config;
+  void *mmio_context;
+  int (*mmio_read32)(void *context, uint8_t bar, uint64_t offset, uint32_t *value);
+  int (*mmio_write32)(void *context, uint8_t bar, uint64_t offset, uint32_t value);
 } ppcvm_pci_slot;
 typedef struct {
   ppcvm_pci_slot slots[PPCVM_PCI_MAX_DEVICES];
@@ -57,4 +60,13 @@ int ppcvm_pci_bus_decode_memory(const ppcvm_pci_bus *bus, uint64_t address,
    Returns 0 for one match, 1 for no match, -1 for overlap/error. */
 int ppcvm_pci_bus_decode_io(const ppcvm_pci_bus *bus, uint32_t address,
                              ppcvm_pci_bar_hit *hit);
+/* Optional host-side 32-bit MMIO dispatch; guest CPU bus is not wired. */
+int ppcvm_pci_bus_set_mmio(ppcvm_pci_bus *bus, uint8_t bus_number,
+    uint8_t device, uint8_t function, void *context,
+    int (*read32)(void *, uint8_t, uint64_t, uint32_t *),
+    int (*write32)(void *, uint8_t, uint64_t, uint32_t));
+int ppcvm_pci_bus_mmio_read32(ppcvm_pci_bus *bus, uint64_t address,
+                               uint32_t *value);
+int ppcvm_pci_bus_mmio_write32(ppcvm_pci_bus *bus, uint64_t address,
+                                uint32_t value);
 #endif
