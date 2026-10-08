@@ -46,3 +46,7 @@ add_test(NAME pegasos2_program COMMAND test_pegasos2_program)
 add_executable(test_pegasos2_run tests/test_pegasos2_run.c)
 target_link_libraries(test_pegasos2_run PRIVATE ppcvm_core)
 add_test(NAME pegasos2_run COMMAND test_pegasos2_run)
+
+add_executable(test_cpu_branch tests/test_cpu_branch.c)
+target_link_libraries(test_cpu_branch PRIVATE ppcvm_core)
+add_test(NAME cpu_branch COMMAND test_cpu_branch)
