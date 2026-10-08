@@ -274,3 +274,7 @@ add_test(NAME pegasos2_cold_reset COMMAND test_pegasos2_cold_reset)
 add_executable(test_pegasos2_cold_boot tests/test_pegasos2_cold_boot.c)
 target_link_libraries(test_pegasos2_cold_boot PRIVATE ppcvm_core)
 add_test(NAME pegasos2_cold_boot COMMAND test_pegasos2_cold_boot)
+
+add_executable(test_pegasos2_firmware_handoff tests/test_pegasos2_firmware_handoff.c)
+target_link_libraries(test_pegasos2_firmware_handoff PRIVATE ppcvm_core)
+add_test(NAME pegasos2_firmware_handoff COMMAND test_pegasos2_firmware_handoff)
