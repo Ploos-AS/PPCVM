@@ -162,3 +162,7 @@ add_test(NAME mmu_pte_lookup COMMAND test_mmu_pte_lookup)
 add_executable(test_mmu_pte_permissions tests/test_mmu_pte_permissions.c)
 target_link_libraries(test_mmu_pte_permissions PRIVATE ppcvm_core)
 add_test(NAME mmu_pte_permissions COMMAND test_mmu_pte_permissions)
+
+add_executable(test_mmu_combined tests/test_mmu_combined.c)
+target_link_libraries(test_mmu_combined PRIVATE ppcvm_core)
+add_test(NAME mmu_combined COMMAND test_mmu_combined)
