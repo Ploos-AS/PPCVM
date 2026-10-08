@@ -13,3 +13,20 @@ jobs:
         run: cmake --build build --parallel
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+  powerpc-assembly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PowerPC cross binutils
+        run: sudo apt-get update && sudo apt-get install -y binutils-powerpc-linux-gnu
+      - name: Assemble and link freestanding diagnostic
+        run: |
+          mkdir -p build/diagnostics
+          powerpc-linux-gnu-as -mppc -o build/diagnostics/pci_mmio.o diagnostics/pci_mmio.S
+          powerpc-linux-gnu-ld -m elf32ppclinux -T diagnostics/pci_mmio.ld -o build/diagnostics/pci_mmio.elf build/diagnostics/pci_mmio.o
+      - name: Verify ELF and disassembly
+        run: |
+          powerpc-linux-gnu-readelf -h -l build/diagnostics/pci_mmio.elf
+          powerpc-linux-gnu-objdump -d build/diagnostics/pci_mmio.elf
+          test "$(powerpc-linux-gnu-readelf -h build/diagnostics/pci_mmio.elf | grep -c 'Machine:.*PowerPC')" -eq 1
