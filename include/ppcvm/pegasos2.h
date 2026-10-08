@@ -19,5 +19,8 @@ typedef struct {
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *machine, size_t ram_size);
 /* Fetches one big-endian instruction from mapped memory and executes it. */
 ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *machine);
+/* Runs up to limit instructions, stopping at the first fault.
+   executed is set to the number of successful instructions. */
+ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *machine, size_t limit, size_t *executed);
 void ppcvm_pegasos2_destroy(ppcvm_pegasos2 *machine);
 #endif
