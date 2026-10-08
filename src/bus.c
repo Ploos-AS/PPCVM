@@ -27,6 +27,13 @@ ppcvm_bus_result ppcvm_bus_map_mmio(ppcvm_bus *bus, uint32_t base, uint32_t size
   region.context=context; region.read=read; region.write=write;
   return add(bus, region);
 }
+ppcvm_bus_result ppcvm_bus_map_mmio32(ppcvm_bus *bus, uint32_t base, uint32_t size, void *context, ppcvm_mmio_read32 read, ppcvm_mmio_write32 write) {
+  if (!read || !write) return PPCVM_BUS_INVALID;
+  ppcvm_bus_region region = {0};
+  region.base=base; region.size=size; region.kind=PPCVM_REGION_MMIO;
+  region.context=context; region.read32=read; region.write32=write;
+  return add(bus, region);
+}
 static ppcvm_bus_region *find(ppcvm_bus *bus, uint32_t address, uint32_t width) {
   if (!bus) return NULL;
   for (size_t i=0; i<bus->count; ++i) {
@@ -41,7 +48,7 @@ ppcvm_bus_result ppcvm_bus_read8(ppcvm_bus *bus, uint32_t address, uint8_t *valu
   ppcvm_bus_region *r=find(bus,address,1);
   if (!r) return PPCVM_BUS_UNMAPPED;
   uint32_t offset=address-r->base;
-  if (r->kind==PPCVM_REGION_MMIO) return r->read(r->context,offset,value);
+  if (r->kind==PPCVM_REGION_MMIO) return r->read ? r->read(r->context,offset,value) : PPCVM_BUS_INVALID;
   *value=r->bytes[offset];
   return PPCVM_BUS_OK;
 }
@@ -50,7 +57,7 @@ ppcvm_bus_result ppcvm_bus_write8(ppcvm_bus *bus, uint32_t address, uint8_t valu
   if (!r) return PPCVM_BUS_UNMAPPED;
   if (r->kind==PPCVM_REGION_ROM) return PPCVM_BUS_READ_ONLY;
   uint32_t offset=address-r->base;
-  if (r->kind==PPCVM_REGION_MMIO) return r->write(r->context,offset,value);
+  if (r->kind==PPCVM_REGION_MMIO) return r->write ? r->write(r->context,offset,value) : PPCVM_BUS_INVALID;
   r->bytes[offset]=value;
   return PPCVM_BUS_OK;
 }
@@ -58,7 +65,7 @@ ppcvm_bus_result ppcvm_bus_read32be(ppcvm_bus *bus, uint32_t address, uint32_t *
   if (!value || (address & 3u)) return PPCVM_BUS_INVALID;
   ppcvm_bus_region *r=find(bus,address,4);
   if (!r) return PPCVM_BUS_UNMAPPED;
-  if (r->kind==PPCVM_REGION_MMIO) return PPCVM_BUS_INVALID; /* register-width MMIO pending */
+  if (r->kind==PPCVM_REGION_MMIO) return r->read32 ? r->read32(r->context,address-r->base,value) : PPCVM_BUS_INVALID;
   uint32_t offset=address-r->base;
   const uint8_t *p=r->bytes+offset;
   *value=((uint32_t)p[0]<<24)|((uint32_t)p[1]<<16)|((uint32_t)p[2]<<8)|p[3];
@@ -69,7 +76,7 @@ ppcvm_bus_result ppcvm_bus_write32be(ppcvm_bus *bus, uint32_t address, uint32_t 
   ppcvm_bus_region *r=find(bus,address,4);
   if (!r) return PPCVM_BUS_UNMAPPED;
   if (r->kind==PPCVM_REGION_ROM) return PPCVM_BUS_READ_ONLY;
-  if (r->kind==PPCVM_REGION_MMIO) return PPCVM_BUS_INVALID;
+  if (r->kind==PPCVM_REGION_MMIO) return r->write32 ? r->write32(r->context,address-r->base,value) : PPCVM_BUS_INVALID;
   uint32_t offset=address-r->base;
   uint8_t *p=r->bytes+offset;
   p[0]=(uint8_t)(value>>24); p[1]=(uint8_t)(value>>16); p[2]=(uint8_t)(value>>8); p[3]=(uint8_t)value;
