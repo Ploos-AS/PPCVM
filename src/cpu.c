@@ -110,6 +110,25 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
     case 31: { /* selected XFX-form special register moves */
       uint32_t xo=(insn>>1)&1023u;
       uint32_t spr=((insn>>16)&31u)|(((insn>>11)&31u)<<5);
+      if (xo==266u || xo==40u || xo==444u || xo==316u || xo==28u) {
+        /* X-form arithmetic and logic. These variants do not set XER overflow. */
+        uint32_t rb=(insn>>11)&31u;
+        uint32_t value;
+        if ((insn&0x400u)!=0u) return PPCVM_UNSUPPORTED; /* OE must be zero */
+        if (xo==266u) value=cpu->gpr[ra]+cpu->gpr[rb]; /* add */
+        else if (xo==40u) value=cpu->gpr[rb]-cpu->gpr[ra]; /* subf */
+        else if (xo==444u) value=cpu->gpr[rt]|cpu->gpr[rb]; /* or */
+        else if (xo==316u) value=cpu->gpr[rt]^cpu->gpr[rb]; /* xor */
+        else value=cpu->gpr[rt]&cpu->gpr[rb]; /* and */
+        if (xo==266u || xo==40u) cpu->gpr[rt]=value;
+        else cpu->gpr[ra]=value;
+        if (insn&1u) {
+          uint32_t bits=(int32_t)value<0 ? 8u : (value ? 4u : 2u);
+          bits|=(cpu->xer>>31)&1u;
+          cpu->cr=(cpu->cr&UINT32_C(0x0fffffff))|(bits<<28);
+        }
+        break;
+      }
       if (xo!=339u && xo!=467u) return PPCVM_UNSUPPORTED;
       if (spr!=8u && spr!=9u) return PPCVM_UNSUPPORTED; /* LR, CTR */
       if (xo==339u) cpu->gpr[rt]=(spr==8u) ? cpu->lr : cpu->ctr;
