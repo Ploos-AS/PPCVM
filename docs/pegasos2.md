@@ -132,3 +132,14 @@ sets status. The request words are preserved. The caller must explicitly
 invoke this host function after guest code writes the request; **there is
 no automatic guest trap, interrupt or MMIO trigger yet**. This mailbox is
 not an Open Firmware interface.
+
+### Opt-in guest-triggered diagnostic call
+
+`ppcvm_pegasos2_step_firmware()` recognizes instruction `sc`
+(`0x44000002`) **only when** guest `r3` equals the PVC1 magic and
+`r4` points to the aligned 16-byte mailbox. It processes one mailbox
+request, sets `r3=0` on success or `r3=1` for unsupported selectors,
+and advances PC by four. Invalid mailbox addresses return a memory fault
+without advancing PC. Other instructions use the normal bus CPU step.
+This opt-in synthetic trap is **not** Open Firmware and is not enabled
+by `ppcvm_pegasos2_step()`.
