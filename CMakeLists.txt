@@ -134,3 +134,7 @@ add_test(NAME mmu_bat_pp COMMAND test_mmu_bat_pp)
 add_executable(test_pegasos2_bat_protection tests/test_pegasos2_bat_protection.c)
 target_link_libraries(test_pegasos2_bat_protection PRIVATE ppcvm_core)
 add_test(NAME pegasos2_bat_protection COMMAND test_pegasos2_bat_protection)
+
+add_executable(test_mmu_bat_validation tests/test_mmu_bat_validation.c)
+target_link_libraries(test_mmu_bat_validation PRIVATE ppcvm_core)
+add_test(NAME mmu_bat_validation COMMAND test_mmu_bat_validation)
