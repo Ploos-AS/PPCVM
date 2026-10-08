@@ -13,6 +13,8 @@ typedef struct {
   uint32_t msr;
   uint32_t srr0;
   uint32_t srr1;
+  uint32_t dar;
+  uint32_t dsisr;
 } ppcvm_cpu;
 typedef enum { PPCVM_OK = 0, PPCVM_UNSUPPORTED = 1, PPCVM_MEMORY_FAULT = 2 } ppcvm_result;
 /* Minimal low-vector exception entry. Caller supplies architected resume PC. */
@@ -25,4 +27,5 @@ void ppcvm_cpu_reset(ppcvm_cpu *cpu);
 ppcvm_result ppcvm_cpu_step(ppcvm_cpu *cpu, uint32_t instruction);
 ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_t instruction);
 ppcvm_result ppcvm_cpu_step_bus(ppcvm_cpu *cpu, ppcvm_bus *bus, uint32_t instruction);
+ppcvm_result ppcvm_cpu_step_bus_dsi(ppcvm_cpu *cpu, ppcvm_bus *bus, uint32_t instruction);
 #endif
