@@ -179,3 +179,14 @@ BDF return `0xffffffff`, and writes are ignored. Duplicate registrations
 and invalid device/function numbers are rejected. This remains a generic
 software model: no Pegasos II host bridge, configuration mechanism, PCI
 BAR probing or interrupt routing is connected yet.
+
+### PCI 32-bit memory BAR prototype
+
+`ppcvm_pci_set_mem_bar32` configures a non-prefetchable 32-bit memory
+BAR with a power-of-two size of at least 16 bytes and an aligned base.
+Writing `0xffffffff` to a configured BAR enables PCI size probing:
+subsequent reads return its address mask. Writing a new address ends
+probing and aligns the base to the configured BAR size. Each BAR has
+independent state. Unconfigured BARs remain generic storage. I/O BARs,
+64-bit BAR pairs, BAR-to-MMIO decoding and real Pegasos II chipset
+integration are not yet supported.
