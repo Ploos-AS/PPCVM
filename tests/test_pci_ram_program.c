@@ -29,16 +29,17 @@ int main(void) {
   assert(ppcvm_pci_bus_set_mmio(&pci,0,2,0,&state,rd,wr)==0);
   assert(ppcvm_bus_map_memory(&bus,0,sizeof(ram),ram,0)==PPCVM_BUS_OK);
   assert(ppcvm_pci_map_mmio_aperture(&bus,&aperture,&pci,0x90000000,4096)==PPCVM_BUS_OK);
-  /* Program: stw r4,4(r3); lwz r5,4(r3); ori r6,r5,0. */
+  /* Program: stw r4,4(r3); lwz r5,4(r3); ori r6,r5,0; diagnostic halt. */
   assert(ppcvm_bus_write32be(&bus,0,(36u<<26)|(4u<<21)|(3u<<16)|4u)==PPCVM_BUS_OK);
   assert(ppcvm_bus_write32be(&bus,4,(32u<<26)|(5u<<21)|(3u<<16)|4u)==PPCVM_BUS_OK);
   assert(ppcvm_bus_write32be(&bus,8,(24u<<26)|(5u<<21)|(6u<<16))==PPCVM_BUS_OK);
+  assert(ppcvm_bus_write32be(&bus,12,PPCVM_DIAGNOSTIC_HALT)==PPCVM_BUS_OK);
   ppcvm_cpu_reset(&cpu);
   cpu.gpr[3]=0x90000000;
   cpu.gpr[4]=0xabcdef12;
   assert(ppcvm_pci_bus_write32(&pci,0,2,0,4,2)==0);
-  ppcvm_run_report report=ppcvm_cpu_run_bus(&cpu,&bus,3);
-  assert(report.reason==PPCVM_RUN_LIMIT && report.executed==3);
+  ppcvm_run_report report=ppcvm_cpu_run_bus_diagnostic(&cpu,&bus,16);
+  assert(report.reason==PPCVM_RUN_HALT && report.executed==3);
   assert(report.final_pc==12 && cpu.pc==12);
   assert(cpu.gpr[5]==0xabcdef12 && cpu.gpr[6]==0xabcdef12);
   assert(state.reads==1 && state.writes==1);
