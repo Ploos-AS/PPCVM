@@ -254,3 +254,7 @@ add_test(NAME cpu_exception_srr1_replace COMMAND test_cpu_exception_srr1_replace
 add_executable(test_cpu_exception_ip tests/test_cpu_exception_ip.c)
 target_link_libraries(test_cpu_exception_ip PRIVATE ppcvm_core)
 add_test(NAME cpu_exception_ip COMMAND test_cpu_exception_ip)
+
+add_executable(test_pegasos2_high_rom tests/test_pegasos2_high_rom.c)
+target_link_libraries(test_pegasos2_high_rom PRIVATE ppcvm_core)
+add_test(NAME pegasos2_high_rom COMMAND test_pegasos2_high_rom)
