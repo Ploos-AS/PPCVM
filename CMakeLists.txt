@@ -302,3 +302,7 @@ add_test(NAME pegasos2_elf32_entry COMMAND test_pegasos2_elf32_entry)
 add_executable(test_pegasos2_elf32_malformed tests/test_pegasos2_elf32_malformed.c)
 target_link_libraries(test_pegasos2_elf32_malformed PRIVATE ppcvm_core)
 add_test(NAME pegasos2_elf32_malformed COMMAND test_pegasos2_elf32_malformed)
+
+add_executable(test_pegasos2_boot_elf32 tests/test_pegasos2_boot_elf32.c)
+target_link_libraries(test_pegasos2_boot_elf32 PRIVATE ppcvm_core)
+add_test(NAME pegasos2_boot_elf32 COMMAND test_pegasos2_boot_elf32)
