@@ -28,4 +28,7 @@ ppcvm_result ppcvm_cpu_step(ppcvm_cpu *cpu, uint32_t instruction);
 ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_t instruction);
 ppcvm_result ppcvm_cpu_step_bus(ppcvm_cpu *cpu, ppcvm_bus *bus, uint32_t instruction);
 ppcvm_result ppcvm_cpu_step_bus_dsi(ppcvm_cpu *cpu, ppcvm_bus *bus, uint32_t instruction);
+/* Fetch one big-endian instruction from the bus at PC, then execute it.
+   No MMU translation or instruction-side exception delivery. */
+ppcvm_result ppcvm_cpu_step_bus_fetch(ppcvm_cpu *cpu, ppcvm_bus *bus);
 #endif
