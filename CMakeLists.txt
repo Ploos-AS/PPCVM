@@ -286,3 +286,7 @@ add_test(NAME pegasos2_raw_loader COMMAND test_pegasos2_raw_loader)
 add_executable(test_pegasos2_elf32 tests/test_pegasos2_elf32.c)
 target_link_libraries(test_pegasos2_elf32 PRIVATE ppcvm_core)
 add_test(NAME pegasos2_elf32 COMMAND test_pegasos2_elf32)
+
+add_executable(test_pegasos2_elf32_segments tests/test_pegasos2_elf32_segments.c)
+target_link_libraries(test_pegasos2_elf32_segments PRIVATE ppcvm_core)
+add_test(NAME pegasos2_elf32_segments COMMAND test_pegasos2_elf32_segments)
