@@ -36,6 +36,36 @@ _start:
     xor 8,5,4
     cmpwi 8,0
     bne failed
+    /* Scan absent slot 3 on PCI0: config data must be all ones. */
+    lis 9,0x0018
+    ori 9,9,0x0080
+    stw 9,0xcf8(3)
+    lwz 5,0xcfc(3)
+    li 7,-1
+    xor 8,5,7
+    cmpwi 8,0
+    bne failed
+    /* Scan absent slot 3 on PCI1, independently. */
+    stw 9,0xc78(3)
+    lwz 5,0xc7c(3)
+    xor 8,5,7
+    cmpwi 8,0
+    bne failed
+    /* Restore and rediscover both populated slot 2 devices. */
+    stw 4,0xcf8(3)
+    lwz 5,0xcfc(3)
+    lis 7,0x3412
+    ori 7,7,0x7856
+    xor 8,5,7
+    cmpwi 8,0
+    bne failed
+    stw 4,0xc78(3)
+    lwz 5,0xc7c(3)
+    lis 7,0xcdab
+    ori 7,7,0x01ef
+    xor 8,5,7
+    cmpwi 8,0
+    bne failed
     li 6,1
     .long 0
 failed:
