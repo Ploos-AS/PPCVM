@@ -382,3 +382,7 @@ add_test(NAME pci_command COMMAND test_pci_command)
 add_executable(test_pci_io_decode tests/test_pci_io_decode.c)
 target_link_libraries(test_pci_io_decode PRIVATE ppcvm_core)
 add_test(NAME pci_io_decode COMMAND test_pci_io_decode)
+
+add_executable(test_pci_mmio tests/test_pci_mmio.c)
+target_link_libraries(test_pci_mmio PRIVATE ppcvm_core)
+add_test(NAME pci_mmio COMMAND test_pci_mmio)
