@@ -43,6 +43,17 @@ ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *m) {
   return ppcvm_cpu_step_bus(&m->cpu,&m->bus,instruction);
 }
 
+ppcvm_result ppcvm_pegasos2_step_isi(ppcvm_pegasos2 *m) {
+  if (!m) return PPCVM_MEMORY_FAULT;
+  uint32_t instruction=0;
+  if ((m->cpu.pc&3u)!=0u) return PPCVM_MEMORY_FAULT; /* alignment is not ISI */
+  if (ppcvm_bus_read32be(&m->bus,m->cpu.pc,&instruction)!=PPCVM_BUS_OK) {
+    ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_ISI,m->cpu.pc);
+    return PPCVM_OK;
+  }
+  return ppcvm_cpu_step_bus(&m->cpu,&m->bus,instruction);
+}
+
 ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *m, size_t limit, size_t *executed) {
   if (executed) *executed=0;
   if (!m) return PPCVM_MEMORY_FAULT;
