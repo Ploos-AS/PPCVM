@@ -44,3 +44,13 @@ ppcvm_mmu_result ppcvm_mmu_translate_bat(const ppcvm_bat_state *state,
   }
   return PPCVM_MMU_UNSUPPORTED; /* No BAT match; page tables unavailable */
 }
+
+/* Segment lookup only: does not imply successful page translation. */
+ppcvm_mmu_result ppcvm_mmu_segment_vsid(const ppcvm_segment_state *state,
+                                         uint32_t ea, uint32_t *vsid) {
+  if (!state || !vsid) return PPCVM_MMU_UNSUPPORTED;
+  uint32_t sr=state->sr[ea>>28];
+  if (sr&UINT32_C(0x80000000)) return PPCVM_MMU_UNSUPPORTED; /* T=1: direct-store segment */
+  *vsid=sr&UINT32_C(0x00ffffff);
+  return PPCVM_MMU_OK;
+}
