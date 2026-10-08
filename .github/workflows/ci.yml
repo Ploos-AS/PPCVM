@@ -31,6 +31,12 @@ jobs:
           cmake --build build/host --target test_pci_elf_diagnostic --parallel
       - name: Execute cross-built ELF in PPCVM
         run: build/host/test_pci_elf_diagnostic build/diagnostics/pci_mmio.elf
+      - name: Upload PowerPC diagnostic ELF
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppcvm-powerpc-pci-diagnostic
+          path: build/diagnostics/pci_mmio.elf
+          if-no-files-found: error
       - name: Verify ELF and disassembly
         run: |
           powerpc-linux-gnu-readelf -h -l build/diagnostics/pci_mmio.elf
