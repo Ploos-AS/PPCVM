@@ -37,9 +37,13 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_access(const ppcvm_segment_state *state,
                                               const ppcvm_memory *ram,
                                               uint32_t ea, ppcvm_access access,
                                               uint32_t *physical_address);
+/* PowerPC 32-bit hashed PTE protection helper.
+   key is the segment protection key (0 or 1); pp is PTE PP (0..3).
+   Instruction fetch uses the read permission path in this prototype. */
+ppcvm_mmu_result ppcvm_mmu_check_pte_permission(uint32_t key, uint32_t pp,
+                                                 ppcvm_access access);
 /* Opt-in mutable PTE walk: set R (bit 8) on reads/fetches and R+C
-   (bits 8,7) on writes after a permitted translation. This is not yet
-   integrated with the CPU bus or full PowerPC key/permission semantics. */
+   (bits 8,7) on writes after a permitted translation. CPU stepping uses this after successful bus accesses; segment keys are\n   not yet wired into the CPU translation path. */
 ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc(const ppcvm_segment_state *state,
                                           ppcvm_memory *ram, uint32_t ea,
                                           ppcvm_access access, uint32_t *pa);
