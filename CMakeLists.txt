@@ -406,3 +406,7 @@ add_test(NAME cpu_fetch COMMAND test_cpu_fetch)
 add_executable(test_cpu_run tests/test_cpu_run.c)
 target_link_libraries(test_cpu_run PRIVATE ppcvm_core)
 add_test(NAME cpu_run COMMAND test_cpu_run)
+
+add_executable(test_cpu_diagnostic_halt tests/test_cpu_diagnostic_halt.c)
+target_link_libraries(test_cpu_diagnostic_halt PRIVATE ppcvm_core)
+add_test(NAME cpu_diagnostic_halt COMMAND test_cpu_diagnostic_halt)
