@@ -146,3 +146,7 @@ add_test(NAME mmu_segments COMMAND test_mmu_segments)
 add_executable(test_pegasos2_segments tests/test_pegasos2_segments.c)
 target_link_libraries(test_pegasos2_segments PRIVATE ppcvm_core)
 add_test(NAME pegasos2_segments COMMAND test_pegasos2_segments)
+
+add_executable(test_pegasos2_sdr1 tests/test_pegasos2_sdr1.c)
+target_link_libraries(test_pegasos2_sdr1 PRIVATE ppcvm_core)
+add_test(NAME pegasos2_sdr1 COMMAND test_pegasos2_sdr1)
