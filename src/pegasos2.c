@@ -110,6 +110,14 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
   *entry=start;
   return PPCVM_OK;
 }
+ppcvm_result ppcvm_pegasos2_boot_elf32(ppcvm_pegasos2 *m,
+                                        const uint8_t *image, size_t size) {
+  uint32_t entry=0;
+  ppcvm_result result=ppcvm_pegasos2_load_elf32(m,image,size,&entry);
+  if (result!=PPCVM_OK) return result;
+  /* Loader already verified a file-backed executable entry in RAM. */
+  return ppcvm_pegasos2_enter_ram(m,entry);
+}
 ppcvm_result ppcvm_pegasos2_load_raw(ppcvm_pegasos2 *m, uint32_t address,
                                     const uint8_t *bytes, size_t size) {
   if (!m || !bytes || !size || !m->ram.data || (size_t)address > m->ram.size ||
