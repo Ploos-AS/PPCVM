@@ -106,6 +106,23 @@ static ppcvm_result bat_spr_step(ppcvm_pegasos2 *m, uint32_t insn) {
   m->cpu.pc+=4;
   return PPCVM_OK;
 }
+/* mfsr/mtsr operate on SR[0..15]; both are privileged. */
+static ppcvm_result segment_spr_step(ppcvm_pegasos2 *m, uint32_t insn) {
+  uint32_t xo=(insn>>1)&1023u;
+  if (xo!=595u && xo!=210u) return PPCVM_UNSUPPORTED;
+  if ((insn&1u) || ((insn>>11)&1u)) return PPCVM_UNSUPPORTED;
+  if (m->cpu.msr&UINT32_C(0x4000)) {
+    ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_PROGRAM,m->cpu.pc);
+    m->cpu.srr1|=UINT32_C(0x00040000);
+    return PPCVM_OK;
+  }
+  unsigned sr=(insn>>16)&15u;
+  unsigned rt=(insn>>21)&31u;
+  if (xo==595u) m->cpu.gpr[rt]=m->segments.sr[sr];
+  else m->segments.sr[sr]=m->cpu.gpr[rt];
+  m->cpu.pc+=4;
+  return PPCVM_OK;
+}
 ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
   if (!m || (m->cpu.pc&3u)) return PPCVM_MEMORY_FAULT;
   uint32_t physical=0, instruction=0;
@@ -117,8 +134,10 @@ ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
   }
   uint32_t op=instruction>>26;
   if (op==31u) {
-    uint32_t spr=((instruction>>16)&31u)|(((instruction>>11)&31u)<<5);
     uint32_t xo=(instruction>>1)&1023u;
+    if (xo==595u || xo==210u)
+      return segment_spr_step(m,instruction);
+    uint32_t spr=((instruction>>16)&31u)|(((instruction>>11)&31u)<<5);
     if ((xo==339u || xo==467u) && spr>=528u && spr<=543u)
       return bat_spr_step(m,instruction);
   }
