@@ -26,7 +26,7 @@ int main(int argc,char **argv) {
   ppcvm_pci_device dev;
   ppcvm_pci_mmio_aperture aperture;
   device_state state={0};
-  uint8_t elf[0x110]={0};
+  uint8_t elf[0x120]={0};
   uint8_t *image=elf;
   size_t image_size=sizeof(elf);
   if(argc>2) return 2;
@@ -57,12 +57,16 @@ int main(int argc,char **argv) {
     be32(elf+24,entry);be32(elf+28,52);
     be16(elf+40,52);be16(elf+42,32);be16(elf+44,1);
     be32(elf+52,1);be32(elf+56,0x100);be32(elf+60,entry);
-    be32(elf+64,entry);be32(elf+68,16);be32(elf+72,16);
+    be32(elf+64,entry);be32(elf+68,32);be32(elf+72,32);
     be32(elf+76,5);be32(elf+80,4);
     be32(elf+0x100,(36u<<26)|(4u<<21)|(3u<<16)|4u);
     be32(elf+0x104,(32u<<26)|(5u<<21)|(3u<<16)|4u);
-    be32(elf+0x108,(24u<<26)|(5u<<21)|(6u<<16));
-    be32(elf+0x10c,PPCVM_DIAGNOSTIC_HALT);
+    be32(elf+0x108,(31u<<26)|(5u<<16)|(4u<<11)|(0u<<1));
+    be32(elf+0x10c,(16u<<26)|(2u<<21)|16u);
+    be32(elf+0x110,(14u<<26)|(6u<<21)|1u);
+    be32(elf+0x114,PPCVM_DIAGNOSTIC_HALT);
+    be32(elf+0x118,(14u<<26)|(6u<<21));
+    be32(elf+0x11c,PPCVM_DIAGNOSTIC_HALT);
   }
   assert(ppcvm_pegasos2_boot_elf32(&m,image,image_size)==PPCVM_OK);
   assert(m.cpu.pc==entry);
