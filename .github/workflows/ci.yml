@@ -36,7 +36,7 @@ jobs:
       - name: Execute cross-built ELF in PPCVM
         run: build/host/test_pci_elf_diagnostic build/diagnostics/pci_mmio.elf
       - name: Execute guest-side PCI self-check success and failure paths
-        run: ctest --test-dir build/host -R '^pci_selfcheck_guest
+        run: ctest --test-dir build/host -R pci_selfcheck_guest --output-on-failure
       - name: Check ELF diagnostic entry and instruction bytes
         run: |
           python3 - <<'PY'
