@@ -285,3 +285,13 @@ PowerPC instruction from the CPU bus at `pc`, then executes it using
 Unmapped or unaligned instruction fetch returns a memory fault without
 advancing PC. This helper does not perform MMU instruction translation
 or deliver an ISI exception; it is intended for direct-mapped diagnostics.
+
+### Bounded CPU run loop
+
+`ppcvm_cpu_run_bus(cpu,bus,max_steps)` repeatedly fetches and executes
+instructions with a deterministic maximum step count. It reports the
+number of successfully executed instructions, final PC, and whether it
+stopped at the limit, an unsupported instruction, a memory fault, or
+invalid arguments. A zero limit performs no instructions. The helper
+uses direct bus addressing without instruction MMU translation and
+is intended for diagnostics, not a complete machine scheduler.
