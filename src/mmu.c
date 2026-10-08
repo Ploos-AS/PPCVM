@@ -33,7 +33,7 @@ ppcvm_mmu_result ppcvm_mmu_translate_bat(const ppcvm_bat_state *state,
     if ((ea & ~mask)!=(upper[i]&UINT32_C(0xfffe0000)&~mask)) continue;
     /* BAT PP=00 denies access; other PP combinations need full privilege rules. */
     if (access!=PPCVM_ACCESS_INSTRUCTION && (lower[i]&3u)==0u)
-      return PPCVM_MMU_UNSUPPORTED;
+      return PPCVM_MMU_PROTECTION;
     *pa=(lower[i]&UINT32_C(0xfffe0000)&~mask)|(ea&mask);
     return PPCVM_MMU_OK;
   }
