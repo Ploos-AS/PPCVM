@@ -11,8 +11,13 @@ int main(void) {
   assert(ppcvm_cpu_step(&c,SPR(467,4,9))==PPCVM_OK && c.ctr==0x10203040u);
   assert(ppcvm_cpu_step(&c,SPR(339,5,8))==PPCVM_OK && c.gpr[5]==c.lr);
   assert(ppcvm_cpu_step(&c,SPR(339,6,9))==PPCVM_OK && c.gpr[6]==c.ctr);
+  c.gpr[3]=0x1234u; c.gpr[4]=0x5678u;
+  assert(ppcvm_cpu_step(&c,SPR(467,3,26))==PPCVM_OK && c.srr0==0x1234u);
+  assert(ppcvm_cpu_step(&c,SPR(467,4,27))==PPCVM_OK && c.srr1==0x5678u);
+  assert(ppcvm_cpu_step(&c,SPR(339,7,26))==PPCVM_OK && c.gpr[7]==0x1234u);
+  assert(ppcvm_cpu_step(&c,SPR(339,8,27))==PPCVM_OK && c.gpr[8]==0x5678u);
   uint32_t pc=c.pc;
-  assert(ppcvm_cpu_step(&c,SPR(339,5,1))==PPCVM_UNSUPPORTED && c.pc==pc);
-  assert(ppcvm_cpu_step(&c,SPR(467,5,1))==PPCVM_UNSUPPORTED && c.pc==pc);
+  assert(ppcvm_cpu_step(&c,SPR(339,5,25))==PPCVM_UNSUPPORTED && c.pc==pc);
+  assert(ppcvm_cpu_step(&c,SPR(467,5,25))==PPCVM_UNSUPPORTED && c.pc==pc);
   return 0;
 }
