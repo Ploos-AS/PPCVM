@@ -14,7 +14,7 @@ int main(void){
   w32(elf+24,0x100);w32(elf+28,52);
   w16(elf+40,52);w16(elf+42,32);w16(elf+44,1);
   w32(elf+52,1);w32(elf+56,96);w32(elf+64,0x100);
-  w32(elf+68,4);w32(elf+72,8);
+  w32(elf+68,4);w32(elf+72,8);w32(elf+76,5);
   w32(elf+96,0x3860002a);
   uint32_t entry=0;
   assert(ppcvm_pegasos2_load_elf32(&m,elf,sizeof(elf),&entry)==PPCVM_OK);
