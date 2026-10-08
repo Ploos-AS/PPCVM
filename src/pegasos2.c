@@ -34,3 +34,11 @@ void ppcvm_pegasos2_destroy(ppcvm_pegasos2 *m) {
   ppcvm_memory_free(&m->ram);
   ppcvm_bus_init(&m->bus);
 }
+
+ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *m) {
+  uint32_t instruction=0;
+  if (!m || (m->cpu.pc & 3u)) return PPCVM_MEMORY_FAULT;
+  if (ppcvm_bus_read32be(&m->bus,m->cpu.pc,&instruction) != PPCVM_BUS_OK)
+    return PPCVM_MEMORY_FAULT;
+  return ppcvm_cpu_step_bus(&m->cpu,&m->bus,instruction);
+}
