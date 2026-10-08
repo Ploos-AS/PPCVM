@@ -31,4 +31,18 @@ ppcvm_result ppcvm_cpu_step_bus_dsi(ppcvm_cpu *cpu, ppcvm_bus *bus, uint32_t ins
 /* Fetch one big-endian instruction from the bus at PC, then execute it.
    No MMU translation or instruction-side exception delivery. */
 ppcvm_result ppcvm_cpu_step_bus_fetch(ppcvm_cpu *cpu, ppcvm_bus *bus);
+typedef enum {
+  PPCVM_RUN_LIMIT=0,
+  PPCVM_RUN_UNSUPPORTED=1,
+  PPCVM_RUN_MEMORY_FAULT=2,
+  PPCVM_RUN_INVALID=3
+} ppcvm_run_reason;
+typedef struct {
+  ppcvm_run_reason reason;
+  uint64_t executed;
+  uint32_t final_pc;
+} ppcvm_run_report;
+/* Execute at most max_steps instructions; zero is a valid no-op limit. */
+ppcvm_run_report ppcvm_cpu_run_bus(ppcvm_cpu *cpu, ppcvm_bus *bus,
+                                    uint64_t max_steps);
 #endif
