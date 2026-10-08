@@ -20,7 +20,7 @@ loop:
     cmpwi 8,0
     bne next
     addi 6,6,1
-    or 9,4,4
+    addi 9,4,0
 next:
     addi 4,4,0x800
     addi 10,10,-1
