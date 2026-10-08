@@ -298,3 +298,7 @@ add_test(NAME pegasos2_elf32_alignment COMMAND test_pegasos2_elf32_alignment)
 add_executable(test_pegasos2_elf32_entry tests/test_pegasos2_elf32_entry.c)
 target_link_libraries(test_pegasos2_elf32_entry PRIVATE ppcvm_core)
 add_test(NAME pegasos2_elf32_entry COMMAND test_pegasos2_elf32_entry)
+
+add_executable(test_pegasos2_elf32_malformed tests/test_pegasos2_elf32_malformed.c)
+target_link_libraries(test_pegasos2_elf32_malformed PRIVATE ppcvm_core)
+add_test(NAME pegasos2_elf32_malformed COMMAND test_pegasos2_elf32_malformed)
