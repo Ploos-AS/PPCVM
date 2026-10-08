@@ -238,3 +238,45 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_keyed(const ppcvm_segment_state *state,
   return PPCVM_MMU_UNSUPPORTED;
 }
 
+
+/* Key-aware mutable page-table walk. */
+ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc_keyed(const ppcvm_segment_state *state,
+                                          ppcvm_memory *ram, uint32_t msr, uint32_t ea,
+                                          ppcvm_access access, uint32_t *pa) {
+  if (!state || !ram || !pa) return PPCVM_MMU_UNSUPPORTED;
+  if (access!=PPCVM_ACCESS_INSTRUCTION && access!=PPCVM_ACCESS_DATA_READ &&
+      access!=PPCVM_ACCESS_DATA_WRITE) return PPCVM_MMU_UNSUPPORTED;
+  uint32_t key=0;
+  if (ppcvm_mmu_segment_key(state,msr,ea,&key)!=PPCVM_MMU_OK)
+    return PPCVM_MMU_UNSUPPORTED;
+  uint32_t vsid=0;
+  if (ppcvm_mmu_segment_vsid(state,ea,&vsid)!=PPCVM_MMU_OK)
+    return PPCVM_MMU_UNSUPPORTED;
+  uint32_t api=(ea>>22)&63u;
+  for (int secondary=0;secondary<=1;secondary++) {
+    uint32_t pteg=0;
+    if (ppcvm_mmu_pteg_address(state,ea,secondary,&pteg)!=PPCVM_MMU_OK)
+      return PPCVM_MMU_UNSUPPORTED;
+    for (uint32_t slot=0;slot<8;slot++) {
+      uint32_t pte0=0,pte1=0,addr=pteg+slot*8u;
+      if (ppcvm_memory_read32be(ram,addr,&pte0)!=PPCVM_MEM_OK ||
+          ppcvm_memory_read32be(ram,addr+4u,&pte1)!=PPCVM_MEM_OK)
+        return PPCVM_MMU_UNSUPPORTED;
+      if (!(pte0&UINT32_C(0x80000000)) ||
+          ((pte0>>7)&UINT32_C(0xffffff))!=vsid ||
+          ((pte0>>6)&1u)!=(uint32_t)secondary ||
+          (pte0&63u)!=api) continue;
+      uint32_t pp=pte1&3u;
+      if (ppcvm_mmu_check_pte_permission(key,pp,access)!=PPCVM_MMU_OK)
+        return PPCVM_MMU_PROTECTION;
+      uint32_t updated=pte1|UINT32_C(0x100);
+      if (access==PPCVM_ACCESS_DATA_WRITE) updated|=UINT32_C(0x80);
+      if (ppcvm_memory_write32be(ram,addr+4u,updated)!=PPCVM_MEM_OK)
+        return PPCVM_MMU_UNSUPPORTED;
+      *pa=(pte1&UINT32_C(0xfffff000))|(ea&UINT32_C(0xfff));
+      return PPCVM_MMU_OK;
+    }
+  }
+  return PPCVM_MMU_UNSUPPORTED;
+}
+
