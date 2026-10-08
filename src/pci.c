@@ -22,3 +22,38 @@ int ppcvm_pci_write32(ppcvm_pci_device *d,uint32_t offset,uint32_t value) {
   for (unsigned i=0;i<4;i++) p[i]=(uint8_t)(value>>(i*8u));
   return 0;
 }
+
+static ppcvm_pci_slot *find_slot(ppcvm_pci_bus *b,uint8_t bus,uint8_t dev,uint8_t fn) {
+  for(size_t i=0;i<b->count;i++)
+    if(b->slots[i].bus==bus && b->slots[i].device==dev &&
+       b->slots[i].function==fn) return &b->slots[i];
+  return 0;
+}
+void ppcvm_pci_bus_init(ppcvm_pci_bus *b) {
+  if(b) memset(b,0,sizeof(*b));
+}
+int ppcvm_pci_bus_add(ppcvm_pci_bus *b,uint8_t bus,uint8_t dev,
+                      uint8_t fn,const ppcvm_pci_device *cfg) {
+  if(!b || !cfg || dev>=32u || fn>=8u || b->count>=PPCVM_PCI_MAX_DEVICES ||
+     find_slot(b,bus,dev,fn)) return -1;
+  ppcvm_pci_slot *slot=&b->slots[b->count++];
+  slot->bus=bus;slot->device=dev;slot->function=fn;slot->config=*cfg;
+  return 0;
+}
+int ppcvm_pci_bus_read32(const ppcvm_pci_bus *b,uint8_t bus,uint8_t dev,
+                         uint8_t fn,uint32_t offset,uint32_t *value) {
+  if(!b || !value || dev>=32u || fn>=8u || (offset&3u) || offset>252u) return -1;
+  for(size_t i=0;i<b->count;i++) {
+    const ppcvm_pci_slot *s=&b->slots[i];
+    if(s->bus==bus && s->device==dev && s->function==fn)
+      return ppcvm_pci_read32(&s->config,offset,value);
+  }
+  *value=UINT32_MAX;
+  return 0;
+}
+int ppcvm_pci_bus_write32(ppcvm_pci_bus *b,uint8_t bus,uint8_t dev,
+                          uint8_t fn,uint32_t offset,uint32_t value) {
+  if(!b || dev>=32u || fn>=8u || (offset&3u) || offset>252u) return -1;
+  ppcvm_pci_slot *s=find_slot(b,bus,dev,fn);
+  return s ? ppcvm_pci_write32(&s->config,offset,value) : 0;
+}
