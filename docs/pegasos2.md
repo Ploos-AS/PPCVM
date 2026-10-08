@@ -143,3 +143,19 @@ and advances PC by four. Invalid mailbox addresses return a memory fault
 without advancing PC. Other instructions use the normal bus CPU step.
 This opt-in synthetic trap is **not** Open Firmware and is not enabled
 by `ppcvm_pegasos2_step()`.
+
+### PVC1 diagnostic ABI compatibility contract
+
+The PVC1 magic (`0x50564331`) and the first 16 bytes of the boot
+record remain compatible between the original ABI and opt-in v2.
+The v2 record is 32 bytes; offset `+16` is the version number `2`.
+All mailbox fields are 32-bit **big-endian** words. Selector IDs `1`,
+`2`, and `3` and status codes `0` (success), `1` (unsupported), `2`
+(invalid) are reserved with their current meanings. Unknown selectors
+must not mutate request fields, and their response value is zero.
+Guest trap activation requires the exact `sc` encoding and PVC1 magic
+in `r3` while using the opt-in firmware stepping API; normal `sc`
+behavior is preserved in standard stepping. New fields and services
+must be added without reinterpreting these existing IDs or offsets.
+This is a **prototype diagnostic ABI**, not an Open Firmware ABI or a
+claim of OS boot compatibility.
