@@ -142,3 +142,41 @@ int ppcvm_pci_bus_write32(ppcvm_pci_bus *b,uint8_t bus,uint8_t dev,
   ppcvm_pci_slot *s=find_slot(b,bus,dev,fn);
   return s ? ppcvm_pci_write32(&s->config,offset,value) : 0;
 }
+
+static uint32_t cfg32(const ppcvm_pci_device *d,unsigned index) {
+  const uint8_t *p=d->config+0x10u+index*4u;
+  return (uint32_t)p[0]|((uint32_t)p[1]<<8)|((uint32_t)p[2]<<16)|((uint32_t)p[3]<<24);
+}
+int ppcvm_pci_bus_decode_memory(const ppcvm_pci_bus *b,uint64_t address,
+                                 ppcvm_pci_bar_hit *hit) {
+  if(!b || !hit) return -1;
+  int found=0;
+  ppcvm_pci_bar_hit candidate={0};
+  for(size_t n=0;n<b->count;n++) {
+    const ppcvm_pci_slot *slot=&b->slots[n];
+    const ppcvm_pci_device *d=&slot->config;
+    for(unsigned i=0;i<6;i++) {
+      uint64_t size=0,base=0;
+      if(d->bar64[i]) {
+        size=d->bar64_size[i];
+        base=((uint64_t)cfg32(d,i+1u)<<32)|
+             ((uint64_t)cfg32(d,i)&UINT64_C(0xfffffff0));
+      } else if(i>0u && d->bar64[i-1u]) {
+        continue;
+      } else if(d->bar_size[i] && !d->bar_io[i]) {
+        size=d->bar_size[i];
+        base=(uint64_t)(cfg32(d,i)&UINT32_C(0xfffffff0));
+      }
+      if(!size || address<base || address-base>=size) continue;
+      if(found) return -1;
+      found=1;
+      candidate.bus=slot->bus;
+      candidate.device=slot->device;
+      candidate.function=slot->function;
+      candidate.bar_index=(uint8_t)i;
+      candidate.offset=address-base;
+    }
+  }
+  if(found) *hit=candidate;
+  return found ? 0 : 1;
+}
