@@ -56,3 +56,13 @@ sets CTR to RAM address zero, and branches via `bctr`. The CPU then fetches and
 executes that instruction from RAM. This verifies a minimal firmware-to-guest
 execution handoff using existing C11 CPU and bus components; it does **not**
 implement Open Firmware, actual Pegasos II firmware, or OS boot.
+
+## M2 raw program loader
+
+`ppcvm_pegasos2_load_raw(machine, address, bytes, size)` copies a nonempty
+raw PowerPC big-endian instruction/data image into mapped guest RAM with
+bounds checks. `ppcvm_pegasos2_enter_ram(machine, entry)` validates a 4-byte
+aligned RAM entry and changes the CPU PC without resetting registers or MSR.
+A CTest loads and executes two instructions. This is **not** an ELF loader,
+firmware ABI, or executable format parser; callers must know the image's load
+and entry addresses and prepare CPU state explicitly.
