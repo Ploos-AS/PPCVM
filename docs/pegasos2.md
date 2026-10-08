@@ -86,3 +86,11 @@ ELF entry validation requires a complete 4-byte instruction inside the
 file-backed portion of an executable (`PF_X`) `PT_LOAD` segment. An entry in
 BSS or a data-only segment is rejected before RAM is modified. Runtime
 execution permissions are not yet enforced by the bus or MMU.
+
+## M2 ELF32 guest entry helper
+
+`ppcvm_pegasos2_boot_elf32(machine, image, size)` validates and loads an
+ELF32 executable, then sets CPU PC to its file-backed executable entry.
+It leaves CPU registers and MSR unchanged, does not perform cold reset, and
+is **not** a firmware boot protocol. Rejected ELF files leave the CPU PC
+and RAM unchanged; successful loading intentionally replaces RAM segments.
