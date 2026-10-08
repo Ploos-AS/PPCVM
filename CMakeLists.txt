@@ -74,3 +74,7 @@ add_test(NAME cpu_register_ops COMMAND test_cpu_register_ops)
 add_executable(test_pegasos2_integration tests/test_pegasos2_integration.c)
 target_link_libraries(test_pegasos2_integration PRIVATE ppcvm_core)
 add_test(NAME pegasos2_integration COMMAND test_pegasos2_integration)
+
+add_executable(test_cpu_rfi tests/test_cpu_rfi.c)
+target_link_libraries(test_cpu_rfi PRIVATE ppcvm_core)
+add_test(NAME cpu_rfi COMMAND test_cpu_rfi)
