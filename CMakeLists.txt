@@ -425,3 +425,7 @@ endif()
 add_executable(test_pci_discovery tests/test_pci_discovery.c)
 target_link_libraries(test_pci_discovery PRIVATE ppcvm_core)
 add_test(NAME pci_discovery COMMAND test_pci_discovery)
+
+add_executable(test_pci_config_bridge tests/test_pci_config_bridge.c)
+target_link_libraries(test_pci_config_bridge PRIVATE ppcvm_core)
+add_test(NAME pci_config_bridge COMMAND test_pci_config_bridge)
