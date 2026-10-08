@@ -12,12 +12,12 @@ static uint32_t ppcvm_mask32(unsigned mb, unsigned me) {
       mask |= UINT32_C(0x80000000) >> bit;
   return mask;
 }
-/* Low-vector exception model; no MMU, high vectors or cause bits yet. */
+/* Simplified 32-bit exception model: MSR[IP] selects the high vector prefix. */
 void ppcvm_cpu_enter_exception(ppcvm_cpu *cpu, uint32_t vector, uint32_t resume_pc) {
   cpu->srr0=resume_pc;
   cpu->srr1=cpu->msr;
   cpu->msr &= ~UINT32_C(0x0000c030); /* PR, EE, IR, DR */
-  cpu->pc=vector;
+  cpu->pc=((cpu->srr1 & UINT32_C(0x40)) ? UINT32_C(0xfff00000) : 0u) | vector;
 }
 void ppcvm_cpu_reset(ppcvm_cpu *cpu) { memset(cpu, 0, sizeof(*cpu)); }
 ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_t insn) {
