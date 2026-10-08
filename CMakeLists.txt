@@ -467,3 +467,7 @@ add_test(NAME discovery_ii_skeleton COMMAND test_discovery_ii)
 add_executable(test_pegasos2_discovery_ii tests/test_pegasos2_discovery_ii.c)
 target_link_libraries(test_pegasos2_discovery_ii PRIVATE ppcvm_core)
 add_test(NAME pegasos2_discovery_ii COMMAND test_pegasos2_discovery_ii)
+
+add_executable(test_discovery_ii_pci tests/test_discovery_ii_pci.c)
+target_link_libraries(test_discovery_ii_pci PRIVATE ppcvm_core)
+add_test(NAME discovery_ii_pci_config COMMAND test_discovery_ii_pci)
