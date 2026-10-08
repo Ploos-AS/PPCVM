@@ -166,3 +166,7 @@ add_test(NAME mmu_pte_permissions COMMAND test_mmu_pte_permissions)
 add_executable(test_mmu_combined tests/test_mmu_combined.c)
 target_link_libraries(test_mmu_combined PRIVATE ppcvm_core)
 add_test(NAME mmu_combined COMMAND test_mmu_combined)
+
+add_executable(test_pegasos2_pte tests/test_pegasos2_pte.c)
+target_link_libraries(test_pegasos2_pte PRIVATE ppcvm_core)
+add_test(NAME pegasos2_pte COMMAND test_pegasos2_pte)
