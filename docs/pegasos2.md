@@ -190,3 +190,11 @@ probing and aligns the base to the configured BAR size. Each BAR has
 independent state. Unconfigured BARs remain generic storage. I/O BARs,
 64-bit BAR pairs, BAR-to-MMIO decoding and real Pegasos II chipset
 integration are not yet supported.
+
+### PCI I/O BAR prototype
+
+`ppcvm_pci_set_io_bar32` adds 32-bit I/O-space BARs (power-of-two
+size >=4 bytes). Probing returns the I/O address mask with bit 0 set;
+normal writes retain bit 0 and align the address. Memory and I/O BARs
+can coexist on a device. This is configuration-space emulation only:
+there is no CPU port-I/O mapping or Pegasos II host-bridge decoding.
