@@ -32,8 +32,7 @@ jobs:
       - name: Configure and build PPCVM integration test
         run: |
           cmake -S . -B build/host -DCMAKE_BUILD_TYPE=Debug
-          cmake --build build/host --target test_pci_elf_diagnostic --parallel
-          cc -std=c11 -Iinclude tests/test_pci_selfcheck.c build/host/libppcvm_core.a -o build/host/test_pci_selfcheck
+          cmake --build build/host --target test_pci_elf_diagnostic test_pci_selfcheck --parallel
       - name: Execute cross-built ELF in PPCVM
         run: build/host/test_pci_elf_diagnostic build/diagnostics/pci_mmio.elf
       - name: Execute guest-side PCI self-check success and failure paths
