@@ -234,3 +234,13 @@ PCI Command bit 0 (I/O Space Enable) is set. Memory BARs are ignored,
 and overlaps return an error rather than selecting an arbitrary device.
 This lookup is host-side only: no PowerPC I/O access instruction,
 PCI bridge routing or port-I/O device callbacks are implemented yet.
+
+### PCI MMIO callback dispatch
+
+A registered PCI BDF may expose host-side `read32` and `write32`
+callbacks. `ppcvm_pci_bus_mmio_read32/write32` decode the address,
+require Memory Space Enable, and forward the BAR index and byte offset.
+Only aligned 32-bit operations are supported. Missing callbacks,
+ambiguous ranges and unmapped addresses fail explicitly. This API is
+not yet connected to the PowerPC CPU bus, and callback values are
+host-native `uint32_t`; device-specific endian behavior is not modeled.
