@@ -27,6 +27,20 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
   uint32_t imm = insn & 0xffffu;
   uint32_t next_pc = cpu->pc + 4u;
   switch (opcode) {
+    case 3: { /* twi: trap word immediate, signed and unsigned conditions */
+      uint32_t to=rt;
+      uint32_t a=cpu->gpr[ra];
+      uint32_t b=(uint32_t)(int32_t)(int16_t)imm;
+      int32_t sa=(int32_t)a, sb=(int32_t)b;
+      int trap=((to&16u) && sa<sb) || ((to&8u) && sa>sb) ||
+               ((to&4u) && a==b) || ((to&2u) && a<b) || ((to&1u) && a>b);
+      if (trap) {
+        ppcvm_cpu_enter_exception(cpu,PPCVM_VECTOR_PROGRAM,cpu->pc);
+        cpu->srr1|=UINT32_C(0x00020000); /* program exception: trap */
+        return PPCVM_OK;
+      }
+      break;
+    }
     case 17: /* sc: only architecturally defined basic encoding */
       if (insn!=UINT32_C(0x44000002)) return PPCVM_UNSUPPORTED;
       ppcvm_cpu_enter_exception(cpu,PPCVM_VECTOR_SYSCALL,next_pc);
