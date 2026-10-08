@@ -63,14 +63,15 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
       if (ctr_ok && cond_ok) next_pc=(insn&2u) ? (uint32_t)offset : cpu->pc+(uint32_t)offset;
       break;
     }
-    case 19: { /* bclr: branch to link register */
+    case 19: { /* bclr / bcctr: indirect branches */
       uint32_t xo=(insn>>1)&1023u;
       uint32_t bo=(insn>>21)&31u;
       uint32_t bi=(insn>>16)&31u;
-      if (xo!=16u || (insn&0x0000e000u)!=0u) return PPCVM_UNSUPPORTED;
-      uint32_t target=cpu->lr & ~3u;
-      if ((bo&4u)==0u) cpu->ctr--;
-      int ctr_ok=(bo&4u)!=0u || ((cpu->ctr!=0u) != ((bo&2u)!=0u));
+      if ((xo!=16u && xo!=528u) || (insn&0x0000e000u)!=0u) return PPCVM_UNSUPPORTED;
+      if (xo==528u && (bo&4u)==0u) return PPCVM_UNSUPPORTED; /* bcctr must not decrement CTR */
+      uint32_t target=(xo==16u ? cpu->lr : cpu->ctr) & ~3u;
+      if (xo==16u && (bo&4u)==0u) cpu->ctr--;
+      int ctr_ok=xo==528u || (bo&4u)!=0u || ((cpu->ctr!=0u) != ((bo&2u)!=0u));
       int cr_bit=(int)((cpu->cr>>(31u-bi))&1u);
       int cond_ok=(bo&16u)!=0u || (cr_bit==((bo&8u)!=0u));
       if (insn&1u) cpu->lr=next_pc;
