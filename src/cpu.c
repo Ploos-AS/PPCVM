@@ -1,5 +1,17 @@
 #include "ppcvm/cpu.h"
 #include <string.h>
+static uint32_t ppcvm_rotl32(uint32_t value, unsigned shift) {
+  shift &= 31u;
+  return shift ? (value << shift) | (value >> (32u-shift)) : value;
+}
+static uint32_t ppcvm_mask32(unsigned mb, unsigned me) {
+  uint32_t mask=0;
+  for (unsigned bit=0; bit<32u; ++bit)
+    if ((mb<=me && bit>=mb && bit<=me) ||
+        (mb>me && (bit>=mb || bit<=me)))
+      mask |= UINT32_C(0x80000000) >> bit;
+  return mask;
+}
 void ppcvm_cpu_reset(ppcvm_cpu *cpu) { memset(cpu, 0, sizeof(*cpu)); }
 ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_t insn) {
   uint32_t opcode = insn >> 26;
@@ -14,6 +26,19 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
     case 15: /* addis */
       cpu->gpr[rt] = (ra ? cpu->gpr[ra] : 0u) + ((uint32_t)((int32_t)(int16_t)imm * 65536));
       break;
+    case 21: { /* rlwinm: rotate left word immediate then mask */
+      unsigned sh=(insn>>11)&31u;
+      unsigned mb=(insn>>6)&31u;
+      unsigned me=(insn>>1)&31u;
+      uint32_t value=ppcvm_rotl32(cpu->gpr[rt],sh) & ppcvm_mask32(mb,me);
+      cpu->gpr[ra]=value;
+      if (insn&1u) {
+        uint32_t bits=(int32_t)value<0 ? 8u : (value ? 4u : 2u);
+        bits|=(cpu->xer>>31)&1u;
+        cpu->cr=(cpu->cr&UINT32_C(0x0fffffff))|(bits<<28);
+      }
+      break;
+    }
     case 24: /* ori */
       cpu->gpr[ra] = cpu->gpr[rt] | imm;
       break;
