@@ -421,3 +421,7 @@ target_link_libraries(test_pci_selfcheck PRIVATE ppcvm_core)
 if(DEFINED PPCVM_PCI_SELFCHECK_ELF AND NOT "${PPCVM_PCI_SELFCHECK_ELF}" STREQUAL "")
   add_test(NAME pci_selfcheck_guest COMMAND test_pci_selfcheck "${PPCVM_PCI_SELFCHECK_ELF}")
 endif()
+
+add_executable(test_pci_discovery tests/test_pci_discovery.c)
+target_link_libraries(test_pci_discovery PRIVATE ppcvm_core)
+add_test(NAME pci_discovery COMMAND test_pci_discovery)
