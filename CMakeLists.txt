@@ -30,3 +30,7 @@ add_test(NAME bus_regions COMMAND test_bus)
 add_executable(test_cpu_bus tests/test_cpu_bus.c)
 target_link_libraries(test_cpu_bus PRIVATE ppcvm_core)
 add_test(NAME cpu_bus COMMAND test_cpu_bus)
+
+add_executable(test_mmio32 tests/test_mmio32.c)
+target_link_libraries(test_mmio32 PRIVATE ppcvm_core)
+add_test(NAME mmio32 COMMAND test_mmio32)
