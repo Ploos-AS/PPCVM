@@ -117,6 +117,34 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
   *entry=start;
   return PPCVM_OK;
 }
+ppcvm_result ppcvm_pegasos2_boot_elf32_abi_v2(ppcvm_pegasos2 *m,
+    const uint8_t *image, size_t size, uint32_t info_address) {
+  if (!m || !m->ram.data || (info_address & 3u) ||
+      (uint64_t)info_address+PPCVM_PEGASOS2_BOOT_INFO_V2_SIZE>m->ram.size ||
+      m->ram.size>UINT32_MAX) return PPCVM_MEMORY_FAULT;
+  if (!image || size<52u || image[0]!=0x7fu || image[1]!='E' ||
+      image[2]!='L' || image[3]!='F' || image[4]!=1u || image[5]!=2u)
+    return PPCVM_UNSUPPORTED;
+  uint32_t phoff=elf32(image+28u);
+  uint16_t phnum=elf16(image+44u), entsize=elf16(image+42u);
+  if (entsize!=32u || (uint64_t)phoff+(uint64_t)phnum*32u>size)
+    return PPCVM_MEMORY_FAULT;
+  for (uint16_t i=0;i<phnum;i++) {
+    const uint8_t *ph=image+phoff+(size_t)i*32u;
+    if (elf32(ph)!=1u) continue;
+    uint64_t base=elf32(ph+12u), end=base+elf32(ph+20u);
+    if (base<(uint64_t)info_address+PPCVM_PEGASOS2_BOOT_INFO_V2_SIZE &&
+        end>info_address) return PPCVM_MEMORY_FAULT;
+  }
+  ppcvm_result result=ppcvm_pegasos2_boot_elf32_abi(m,image,size,info_address);
+  if (result!=PPCVM_OK) return result;
+  ppcvm_memory_write32be(&m->ram,info_address+4u,PPCVM_PEGASOS2_BOOT_INFO_V2_SIZE);
+  ppcvm_memory_write32be(&m->ram,info_address+16u,2u); /* version */
+  ppcvm_memory_write32be(&m->ram,info_address+20u,0u); /* reserved flags */
+  ppcvm_memory_write32be(&m->ram,info_address+24u,0u); /* reserved service pointer */
+  ppcvm_memory_write32be(&m->ram,info_address+28u,0u); /* reserved */
+  return PPCVM_OK;
+}
 ppcvm_result ppcvm_pegasos2_boot_elf32_abi(ppcvm_pegasos2 *m,
     const uint8_t *image, size_t size, uint32_t info_address) {
   uint32_t entry=0;
