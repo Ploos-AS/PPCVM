@@ -334,3 +334,7 @@ add_test(NAME pegasos2_firmware_query COMMAND test_pegasos2_firmware_query)
 add_executable(test_pegasos2_firmware_mailbox tests/test_pegasos2_firmware_mailbox.c)
 target_link_libraries(test_pegasos2_firmware_mailbox PRIVATE ppcvm_core)
 add_test(NAME pegasos2_firmware_mailbox COMMAND test_pegasos2_firmware_mailbox)
+
+add_executable(test_pegasos2_firmware_trap tests/test_pegasos2_firmware_trap.c)
+target_link_libraries(test_pegasos2_firmware_trap PRIVATE ppcvm_core)
+add_test(NAME pegasos2_firmware_trap COMMAND test_pegasos2_firmware_trap)
