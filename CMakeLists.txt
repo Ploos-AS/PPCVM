@@ -38,3 +38,7 @@ add_test(NAME mmio32 COMMAND test_mmio32)
 add_executable(test_pegasos2 tests/test_pegasos2.c)
 target_link_libraries(test_pegasos2 PRIVATE ppcvm_core)
 add_test(NAME pegasos2_skeleton COMMAND test_pegasos2)
+
+add_executable(test_pegasos2_program tests/test_pegasos2_program.c)
+target_link_libraries(test_pegasos2_program PRIVATE ppcvm_core)
+add_test(NAME pegasos2_program COMMAND test_pegasos2_program)
