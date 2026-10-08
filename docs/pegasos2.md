@@ -207,3 +207,13 @@ independent sizing probes; the low half reports memory type `10b`.
 Sizes are power-of-two, at least 16 bytes, and can exceed 4 GiB.
 Configuration writes are masked to the configured size. This is still
 an isolated PCI configuration model without real MMIO decoding.
+
+### Standalone PCI memory address decoding
+
+`ppcvm_pci_bus_decode_memory` resolves an address against configured
+32-bit and 64-bit memory BARs and returns BDF, BAR index and byte offset.
+I/O BARs are excluded. Unmapped addresses return 1; overlapping BARs
+return -1 rather than silently choosing a device. This is a host-side
+lookup only; it does **not** attach PCI regions to PowerPC memory access,
+implement PCI command-register decode enable bits, or establish real
+Pegasos II bridge windows.
