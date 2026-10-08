@@ -66,7 +66,35 @@ _start:
     xor 8,5,7
     cmpwi 8,0
     bne failed
+    /* BAR0 on PCI0: config register 0x10; guest-visible LE word. */
+    lis 9,0x0010
+    ori 9,9,0x1080
+    stw 9,0xcf8(3)
+    lwz 5,0xcfc(3)
+    lis 7,0x0000
+    ori 7,7,0x0090
+    xor 8,5,7
+    cmpwi 8,0
+    bne failed
+    /* Probe BAR0 size (4 KiB), then restore original base. */
+    li 10,-1
+    stw 10,0xcfc(3)
+    lwz 5,0xcfc(3)
+    lis 7,0x00f0
+    ori 7,7,0xffff
+    xor 8,5,7
+    cmpwi 8,0
+    bne restore_failed
+    lis 10,0x0000
+    ori 10,10,0x0090
+    stw 10,0xcfc(3)
     li 6,1
+    .long 0
+restore_failed:
+    lis 10,0x0000
+    ori 10,10,0x0090
+    stw 10,0xcfc(3)
+    b failed
     .long 0
 failed:
     li 6,0
