@@ -31,6 +31,12 @@ ppcvm_mmu_result ppcvm_mmu_pteg_address(const ppcvm_segment_state *state,
 ppcvm_mmu_result ppcvm_mmu_lookup_pte(const ppcvm_segment_state *state,
                                        const ppcvm_memory *ram, uint32_t ea,
                                        uint32_t *physical_address);
+/* Opt-in PTE lookup with simplified PP protection (00 none, 01 read,
+   10/11 read-write). Does not model segment keys or R/C updates. */
+ppcvm_mmu_result ppcvm_mmu_lookup_pte_access(const ppcvm_segment_state *state,
+                                              const ppcvm_memory *ram,
+                                              uint32_t ea, ppcvm_access access,
+                                              uint32_t *physical_address);
 /* Supports 128 KiB to 256 MiB BAT blocks, VS/VP and physical block mapping.
    PP=00 denies data and PP=01 is read-only in the current simplified model.
    Full privilege/key semantics, WIMG and page tables are not implemented. */
