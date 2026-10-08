@@ -17,8 +17,11 @@ int main(void) {
   assert(m.bat.dbatu[0]==UINT32_C(0x80000002));
   m.cpu.pc=0;
   m.cpu.msr=UINT32_C(0x4000);
-  assert(ppcvm_pegasos2_step_bat(&m)==PPCVM_UNSUPPORTED);
-  assert(m.cpu.pc==0);
+  assert(ppcvm_pegasos2_step_bat(&m)==PPCVM_OK);
+  assert(m.cpu.pc==PPCVM_VECTOR_PROGRAM && m.cpu.srr0==0);
+  assert((m.cpu.srr1&UINT32_C(0x00040000))!=0);
+  assert((m.cpu.srr1&UINT32_C(0x4000))!=0);
+  assert((m.cpu.msr&UINT32_C(0x4000))==0);
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
