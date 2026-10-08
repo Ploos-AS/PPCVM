@@ -123,11 +123,18 @@ static ppcvm_result segment_spr_step(ppcvm_pegasos2 *m, uint32_t insn) {
   m->cpu.pc+=4;
   return PPCVM_OK;
 }
-ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
+static ppcvm_mmu_result translate_step(ppcvm_pegasos2 *m, int use_pte,
+                                        uint32_t ea, ppcvm_access access,
+                                        uint32_t *pa) {
+  if (use_pte)
+    return ppcvm_mmu_translate_combined(&m->bat,&m->segments,&m->ram,
+                                        m->cpu.msr,ea,access,pa);
+  return ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,ea,access,pa);
+}
+static ppcvm_result step_translated(ppcvm_pegasos2 *m, int use_pte) {
   if (!m || (m->cpu.pc&3u)) return PPCVM_MEMORY_FAULT;
   uint32_t physical=0, instruction=0;
-  if (ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,m->cpu.pc,
-                              PPCVM_ACCESS_INSTRUCTION,&physical)!=PPCVM_MMU_OK ||
+  if (translate_step(m,use_pte,m->cpu.pc,PPCVM_ACCESS_INSTRUCTION,&physical)!=PPCVM_MMU_OK ||
       ppcvm_bus_read32be(&m->bus,physical,&instruction)!=PPCVM_BUS_OK) {
     ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_ISI,m->cpu.pc);
     return PPCVM_OK;
@@ -160,7 +167,7 @@ ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
   uint32_t ea=(ra?m->cpu.gpr[ra]:0u)+(uint32_t)(int32_t)(int16_t)(instruction&0xffffu);
   if ((op==32 || op==36) && (ea&3u)) return PPCVM_MEMORY_FAULT;
   ppcvm_access access=(op==36 || op==38)?PPCVM_ACCESS_DATA_WRITE:PPCVM_ACCESS_DATA_READ;
-  ppcvm_mmu_result translation=ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,ea,access,&physical);
+  ppcvm_mmu_result translation=translate_step(m,use_pte,ea,access,&physical);
   if (translation==PPCVM_MMU_PROTECTION) goto protection_fault;
   if (translation!=PPCVM_MMU_OK) goto fault;
   ppcvm_bus_result status;
@@ -194,6 +201,13 @@ fault:
   m->cpu.dsisr=(access==PPCVM_ACCESS_DATA_WRITE)?UINT32_C(0x42000000):UINT32_C(0x40000000);
   ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_DSI,m->cpu.pc);
   return PPCVM_OK;
+}
+
+ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
+  return step_translated(m,0);
+}
+ppcvm_result ppcvm_pegasos2_step_pte(ppcvm_pegasos2 *m) {
+  return step_translated(m,1);
 }
 
 ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *m, size_t limit, size_t *executed) {
