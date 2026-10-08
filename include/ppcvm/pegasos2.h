@@ -32,6 +32,8 @@ ppcvm_result ppcvm_pegasos2_step_bat_fetch(ppcvm_pegasos2 *machine);
 ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *machine);
 /* Opt-in BAT+PTE instruction/data translation, still prototype-only. */
 ppcvm_result ppcvm_pegasos2_step_pte(ppcvm_pegasos2 *machine);
+/* Opt-in PTE translation with SR protection keys and R/C tracking. */
+ppcvm_result ppcvm_pegasos2_step_pte_keyed(ppcvm_pegasos2 *machine);
 /* Runs up to limit instructions, stopping at the first fault.
    executed is set to the number of successful instructions. */
 ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *machine, size_t limit, size_t *executed);
