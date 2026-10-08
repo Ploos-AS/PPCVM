@@ -15,6 +15,10 @@ static ppcvm_bus_result discovery_write(void *context, uint32_t offset, uint32_t
   m->discovery_scratch=value;
   return PPCVM_BUS_OK;
 }
+ppcvm_bus_result ppcvm_pegasos2_map_high_rom(ppcvm_pegasos2 *m, uint8_t *bytes, uint32_t size) {
+  if (!m || !bytes || size < UINT32_C(0x1000) || size > UINT32_C(0x100000)) return PPCVM_BUS_INVALID;
+  return ppcvm_bus_map_memory(&m->bus,UINT32_C(0xfff00000),size,bytes,1);
+}
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *m, size_t ram_size) {
   if (!m || !ram_size || ram_size > UINT32_C(0xf0000000)) return -1;
   memset(m,0,sizeof(*m));
