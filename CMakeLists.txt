@@ -226,3 +226,7 @@ add_test(NAME pegasos2_pte_keyed_isi COMMAND test_pegasos2_pte_keyed_isi)
 add_executable(test_pegasos2_pte_keyed_dsi tests/test_pegasos2_pte_keyed_dsi.c)
 target_link_libraries(test_pegasos2_pte_keyed_dsi PRIVATE ppcvm_core)
 add_test(NAME pegasos2_pte_keyed_dsi COMMAND test_pegasos2_pte_keyed_dsi)
+
+add_executable(test_pegasos2_pte_keyed_rfi tests/test_pegasos2_pte_keyed_rfi.c)
+target_link_libraries(test_pegasos2_pte_keyed_rfi PRIVATE ppcvm_core)
+add_test(NAME pegasos2_pte_keyed_rfi COMMAND test_pegasos2_pte_keyed_rfi)
