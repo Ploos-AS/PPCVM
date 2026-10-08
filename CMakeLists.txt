@@ -414,3 +414,7 @@ add_test(NAME cpu_diagnostic_halt COMMAND test_cpu_diagnostic_halt)
 add_executable(test_pci_elf_diagnostic tests/test_pci_elf_diagnostic.c)
 target_link_libraries(test_pci_elf_diagnostic PRIVATE ppcvm_core)
 add_test(NAME pci_elf_diagnostic COMMAND test_pci_elf_diagnostic)
+
+# The cross-assembled ELF is supplied as a CTest argument by the PowerPC CI job.
+add_executable(test_pci_selfcheck tests/test_pci_selfcheck.c)
+target_link_libraries(test_pci_selfcheck PRIVATE ppcvm_core)
