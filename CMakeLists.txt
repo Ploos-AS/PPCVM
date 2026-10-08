@@ -354,3 +354,7 @@ add_test(NAME pegasos2_firmware_trap_isolation COMMAND test_pegasos2_firmware_tr
 add_executable(test_pci_config tests/test_pci_config.c)
 target_link_libraries(test_pci_config PRIVATE ppcvm_core)
 add_test(NAME pci_config COMMAND test_pci_config)
+
+add_executable(test_pci_bus tests/test_pci_bus.c)
+target_link_libraries(test_pci_bus PRIVATE ppcvm_core)
+add_test(NAME pci_bus COMMAND test_pci_bus)
