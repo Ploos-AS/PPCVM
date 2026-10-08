@@ -198,3 +198,7 @@ add_test(NAME mmu_pte_keys COMMAND test_mmu_pte_keys)
 add_executable(test_mmu_segment_keys tests/test_mmu_segment_keys.c)
 target_link_libraries(test_mmu_segment_keys PRIVATE ppcvm_core)
 add_test(NAME mmu_segment_keys COMMAND test_mmu_segment_keys)
+
+add_executable(test_mmu_pte_keyed tests/test_mmu_pte_keyed.c)
+target_link_libraries(test_mmu_pte_keyed PRIVATE ppcvm_core)
+add_test(NAME mmu_pte_keyed COMMAND test_mmu_pte_keyed)
