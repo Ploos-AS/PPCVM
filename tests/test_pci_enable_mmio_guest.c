@@ -45,6 +45,9 @@ int main(int argc,char **argv) {
   uint32_t command=0;
   assert(ppcvm_pci_bus_read32(&pci,0,2,0,4,&command)==0);
   assert((command&2u)==0);
+  /* With decode disabled, BAR0 must not be reachable before guest setup. */
+  uint32_t inaccessible=0;
+  assert(ppcvm_bus_read32be(&machine.bus,0x90000004u,&inaccessible)==PPCVM_BUS_UNMAPPED);
   for(int corrupt=0;corrupt<2;corrupt++) {
     machine.cpu.pc=0x100u;
     machine.cpu.gpr[3]=0x80000000u;
