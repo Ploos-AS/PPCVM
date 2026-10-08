@@ -267,3 +267,12 @@ that PCI Command Memory Space Enable gates both operations and that
 register values round-trip. Instructions are supplied by the host test;
 this is not yet a guest firmware or OS boot, and the adapter does not
 implement a real Pegasos II PCI host bridge.
+
+### RAM-fetched PowerPC PCI diagnostic
+
+`test_pci_ram_program` stores three big-endian PowerPC instructions in
+emulated RAM, fetches them via the CPU bus, and executes `stw`, `lwz`
+and `ori` through the reference interpreter. The store/load pair reaches
+a PCI MMIO callback and the final register copy verifies the value.
+The host test explicitly drives the fetch/step loop; this is not a
+firmware-driven guest boot or complete Pegasos II PCI implementation.
