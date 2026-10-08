@@ -87,6 +87,16 @@ int main(int argc,char **argv) {
   assert(report.final_pc==entry+12);
   assert(m.cpu.gpr[5]==0x13579bdf && m.cpu.gpr[6]==0x13579bdf);
   assert(state.value==0x13579bdf && state.reads==1 && state.writes==1);
+  /* Repeat the same loaded guest without reloading ELF or remapping PCI. */
+  m.cpu.pc=entry;
+  m.cpu.gpr[4]=0x2468ace0;
+  m.cpu.gpr[5]=0;
+  m.cpu.gpr[6]=0;
+  report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,16);
+  assert(report.reason==PPCVM_RUN_HALT && report.executed==3);
+  assert(report.final_pc==entry+12);
+  assert(m.cpu.gpr[5]==0x2468ace0 && m.cpu.gpr[6]==0x2468ace0);
+  assert(state.value==0x2468ace0 && state.reads==2 && state.writes==2);
   ppcvm_pegasos2_destroy(&m);
   if(argc==2) free(image);
   return 0;
