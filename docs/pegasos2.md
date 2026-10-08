@@ -332,3 +332,8 @@ script places the entry at guest address `0x100`. The separate CI job
 and prints ELF metadata and disassembly. The existing C integration test
 still constructs its own ELF bytes and does not yet load the CI-built
 artifact. The host supplies PCI BAR configuration and initial registers.
+
+The `powerpc-assembly` CI job also uploads the built `pci_mmio.elf` as
+`ppcvm-powerpc-pci-diagnostic`, allowing inspection and reuse of the
+actual cross-assembled ELF. The file is a diagnostic guest program,
+not a bootable MorphOS, AmigaOS 4 or Open Firmware image.
