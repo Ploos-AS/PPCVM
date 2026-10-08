@@ -304,3 +304,10 @@ without executing or counting the marker, leaving PC at its address.
 The ordinary `ppcvm_cpu_run_bus` and CPU interpreter do not intercept
 this word. **This is not a PowerPC HALT instruction**, not firmware,
 and not enabled for normal guest execution.
+
+The `test_pci_ram_program` integration diagnostic now places the halt
+marker after its three PowerPC instructions and runs with
+`ppcvm_cpu_run_bus_diagnostic`. It asserts that the run ends with
+`PPCVM_RUN_HALT`, three executed instructions, PC at the marker,
+and exactly one PCI MMIO read and write. This remains a synthetic
+host-configured PCI test, not a booted guest operating system.
