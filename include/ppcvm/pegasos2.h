@@ -29,6 +29,8 @@ void ppcvm_pegasos2_cold_reset(ppcvm_pegasos2 *machine);
 ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t entry);
 /* Validate ROM entry, then cold-reset machine and begin execution there. */
 ppcvm_result ppcvm_pegasos2_cold_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t entry);
+/* Load an ELF32 guest and transfer CPU PC to its validated entry. */
+ppcvm_result ppcvm_pegasos2_boot_elf32(ppcvm_pegasos2 *machine, const uint8_t *image, size_t size);
 /* Load ELF32 big-endian PowerPC PT_LOAD segments into guest RAM atomically. */
 ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *machine, const uint8_t *image, size_t size, uint32_t *entry);
 /* Load a raw big-endian PPC image into RAM; caller supplies load address. */
