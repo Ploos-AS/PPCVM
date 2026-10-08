@@ -21,6 +21,8 @@ typedef struct {
 } ppcvm_pegasos2;
 /* Map caller-owned, read-only diagnostic/firmware bytes at the high vector prefix. */
 ppcvm_bus_result ppcvm_pegasos2_map_high_rom(ppcvm_pegasos2 *machine, uint8_t *bytes, uint32_t size);
+/* Reset CPU and synthetic device state without clearing RAM or ROM mappings. */
+void ppcvm_pegasos2_reset(ppcvm_pegasos2 *machine);
 /* Start at a mapped high-ROM instruction address; reset CPU only. */
 ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t entry);
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *machine, size_t ram_size);
