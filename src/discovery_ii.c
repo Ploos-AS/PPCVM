@@ -1,6 +1,12 @@
 #include "ppcvm/discovery_ii.h"
 #include <stdint.h>
 #include <string.h>
+uint32_t ppcvm_discovery_ii_swap32(uint32_t word) {
+  return ((word & UINT32_C(0x000000ff)) << 24) |
+         ((word & UINT32_C(0x0000ff00)) << 8) |
+         ((word & UINT32_C(0x00ff0000)) >> 8) |
+         ((word & UINT32_C(0xff000000)) >> 24);
+}
 static ppcvm_bus_result read_register(void *context,uint32_t offset,uint32_t *value) {
   ppcvm_discovery_ii *controller=(ppcvm_discovery_ii *)context;
   (void)offset;
