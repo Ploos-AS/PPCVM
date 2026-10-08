@@ -136,9 +136,8 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc(const ppcvm_segment_state *state,
                                           ppcvm_memory *ram, uint32_t ea,
                                           ppcvm_access access, uint32_t *pa) {
   if (!state || !ram || !pa) return PPCVM_MMU_UNSUPPORTED;
-  uint32_t resolved=0;
-  ppcvm_mmu_result result=ppcvm_mmu_lookup_pte_access(state,ram,ea,access,&resolved);
-  if (result!=PPCVM_MMU_OK) return result;
+  if (access!=PPCVM_ACCESS_INSTRUCTION && access!=PPCVM_ACCESS_DATA_READ &&
+      access!=PPCVM_ACCESS_DATA_WRITE) return PPCVM_MMU_UNSUPPORTED;
   uint32_t vsid=0;
   if (ppcvm_mmu_segment_vsid(state,ea,&vsid)!=PPCVM_MMU_OK)
     return PPCVM_MMU_UNSUPPORTED;
@@ -156,11 +155,14 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc(const ppcvm_segment_state *state,
           ((pte0>>7)&UINT32_C(0xffffff))!=vsid ||
           ((pte0>>6)&1u)!=(uint32_t)secondary ||
           (pte0&63u)!=api) continue;
+      uint32_t pp=pte1&3u;
+      if (pp==0u || (pp==1u && access==PPCVM_ACCESS_DATA_WRITE))
+        return PPCVM_MMU_PROTECTION;
       uint32_t updated=pte1|UINT32_C(0x100);
       if (access==PPCVM_ACCESS_DATA_WRITE) updated|=UINT32_C(0x80);
       if (ppcvm_memory_write32be(ram,addr+4u,updated)!=PPCVM_MEM_OK)
         return PPCVM_MMU_UNSUPPORTED;
-      *pa=resolved;
+      *pa=(pte1&UINT32_C(0xfffff000))|(ea&UINT32_C(0xfff));
       return PPCVM_MMU_OK;
     }
   }
