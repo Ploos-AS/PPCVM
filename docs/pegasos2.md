@@ -66,3 +66,13 @@ aligned RAM entry and changes the CPU PC without resetting registers or MSR.
 A CTest loads and executes two instructions. This is **not** an ELF loader,
 firmware ABI, or executable format parser; callers must know the image's load
 and entry addresses and prepare CPU state explicitly.
+
+## M2 experimental ELF32 loader
+
+`ppcvm_pegasos2_load_elf32(machine, image, size, &entry)` accepts a bounded,
+big-endian ELF32 PowerPC `ET_EXEC` image with 32-byte program headers. It
+validates all `PT_LOAD` file/RAM bounds and segment overlap before writing,
+copies file bytes, zero-fills BSS, and returns the entry address. It rejects
+entries outside loaded segments. It does not interpret relocations, dynamic
+linking, section headers, MMU mappings, or firmware ABIs. The caller uses
+`ppcvm_pegasos2_enter_ram()` to transfer execution.
