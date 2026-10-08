@@ -186,3 +186,7 @@ add_test(NAME pegasos2_pte_rc COMMAND test_pegasos2_pte_rc)
 add_executable(test_pegasos2_pte_fetch_rc tests/test_pegasos2_pte_fetch_rc.c)
 target_link_libraries(test_pegasos2_pte_fetch_rc PRIVATE ppcvm_core)
 add_test(NAME pegasos2_pte_fetch_rc COMMAND test_pegasos2_pte_fetch_rc)
+
+add_executable(test_pegasos2_pte_bus_fault tests/test_pegasos2_pte_bus_fault.c)
+target_link_libraries(test_pegasos2_pte_bus_fault PRIVATE ppcvm_core)
+add_test(NAME pegasos2_pte_bus_fault COMMAND test_pegasos2_pte_bus_fault)
