@@ -79,6 +79,51 @@ ppcvm_result ppcvm_pegasos2_step_bat_fetch(ppcvm_pegasos2 *m) {
   return ppcvm_cpu_step_bus_dsi(&m->cpu,&m->bus,instruction);
 }
 
+ppcvm_result ppcvm_pegasos2_step_bat(ppcvm_pegasos2 *m) {
+  if (!m || (m->cpu.pc&3u)) return PPCVM_MEMORY_FAULT;
+  uint32_t physical=0, instruction=0;
+  if (ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,m->cpu.pc,
+                              PPCVM_ACCESS_INSTRUCTION,&physical)!=PPCVM_MMU_OK ||
+      ppcvm_bus_read32be(&m->bus,physical,&instruction)!=PPCVM_BUS_OK) {
+    ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_ISI,m->cpu.pc);
+    return PPCVM_OK;
+  }
+  uint32_t op=instruction>>26;
+  if (op!=32 && op!=34 && op!=36 && op!=38)
+    return ppcvm_cpu_step(&m->cpu,instruction);
+  uint32_t rt=(instruction>>21)&31u, ra=(instruction>>16)&31u;
+  uint32_t ea=(ra?m->cpu.gpr[ra]:0u)+(uint32_t)(int32_t)(int16_t)(instruction&0xffffu);
+  if ((op==32 || op==36) && (ea&3u)) return PPCVM_MEMORY_FAULT;
+  ppcvm_access access=(op==36 || op==38)?PPCVM_ACCESS_DATA_WRITE:PPCVM_ACCESS_DATA_READ;
+  if (ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,ea,access,&physical)!=PPCVM_MMU_OK)
+    goto fault;
+  ppcvm_bus_result status;
+  uint32_t word=0;
+  uint8_t byte=0;
+  if (op==32) {
+    status=ppcvm_bus_read32be(&m->bus,physical,&word);
+    if (status!=PPCVM_BUS_OK) goto fault;
+    m->cpu.gpr[rt]=word;
+  } else if (op==34) {
+    status=ppcvm_bus_read8(&m->bus,physical,&byte);
+    if (status!=PPCVM_BUS_OK) goto fault;
+    m->cpu.gpr[rt]=byte;
+  } else if (op==36) {
+    status=ppcvm_bus_write32be(&m->bus,physical,m->cpu.gpr[rt]);
+    if (status!=PPCVM_BUS_OK) goto fault;
+  } else {
+    status=ppcvm_bus_write8(&m->bus,physical,(uint8_t)m->cpu.gpr[rt]);
+    if (status!=PPCVM_BUS_OK) goto fault;
+  }
+  m->cpu.pc+=4;
+  return PPCVM_OK;
+fault:
+  m->cpu.dar=ea;
+  m->cpu.dsisr=(access==PPCVM_ACCESS_DATA_WRITE)?UINT32_C(0x42000000):UINT32_C(0x40000000);
+  ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_DSI,m->cpu.pc);
+  return PPCVM_OK;
+}
+
 ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *m, size_t limit, size_t *executed) {
   if (executed) *executed=0;
   if (!m) return PPCVM_MEMORY_FAULT;
