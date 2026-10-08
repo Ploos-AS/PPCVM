@@ -76,3 +76,8 @@ copies file bytes, zero-fills BSS, and returns the entry address. It rejects
 entries outside loaded segments. It does not interpret relocations, dynamic
 linking, section headers, MMU mappings, or firmware ABIs. The caller uses
 `ppcvm_pegasos2_enter_ram()` to transfer execution.
+
+The ELF32 preflight also checks `PT_LOAD` flags (only PF_R/PF_W/PF_X)
+and `p_align` (zero/one or power of two, with congruent file offset and
+physical load address). These checks reject malformed segments before
+modifying guest RAM; they do not yet enforce runtime memory permissions.
