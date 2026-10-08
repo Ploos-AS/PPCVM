@@ -96,6 +96,12 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
       uint32_t xo=(insn>>1)&1023u;
       uint32_t bo=(insn>>21)&31u;
       uint32_t bi=(insn>>16)&31u;
+      if (xo==50u) { /* rfi: privileged exception return, minimal 32-bit model */
+        if (insn!=UINT32_C(0x4c000064) || (cpu->msr&UINT32_C(0x4000))) return PPCVM_UNSUPPORTED;
+        cpu->msr=cpu->srr1;
+        next_pc=cpu->srr0 & ~3u;
+        break;
+      }
       if ((xo!=16u && xo!=528u) || (insn&0x0000e000u)!=0u) return PPCVM_UNSUPPORTED;
       if (xo==528u && (bo&4u)==0u) return PPCVM_UNSUPPORTED; /* bcctr must not decrement CTR */
       uint32_t target=(xo==16u ? cpu->lr : cpu->ctr) & ~3u;
