@@ -22,6 +22,7 @@ int main(int argc,char **argv) {
   ppcvm_pci_bus_init(&pci);
   ppcvm_pci_bus_init(&pci1);
   ppcvm_pci_device_init(&device,0x1234,0x5678,2,0,1);
+  assert(ppcvm_pci_set_mem_bar32(&device,0,4096,0x90000000u)==0);
   assert(ppcvm_pci_bus_add(&pci,0,2,0,&device)==0);
   ppcvm_pci_device_init(&device1,0xabcd,0xef01,2,0,1);
   assert(ppcvm_pci_bus_add(&pci1,0,2,0,&device1)==0);
@@ -33,7 +34,10 @@ int main(int argc,char **argv) {
   ppcvm_run_report report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,64);
   assert(report.reason==PPCVM_RUN_HALT);
   assert(m.cpu.gpr[6]==1u);
-  assert(m.discovery_ii.config_address[0]==0x80001000u);
+  assert(m.discovery_ii.config_address[0]==0x80001010u);
+  uint32_t bar=0;
+  assert(ppcvm_pci_bus_read32(&pci,0,2,0,0x10,&bar)==0);
+  assert(bar==0x90000000u);
   assert(m.discovery_ii.config_address[1]==0x80001000u);
   pci.slots[0].config.config[0]=0x35u;
   m.cpu.pc=0x100u;
