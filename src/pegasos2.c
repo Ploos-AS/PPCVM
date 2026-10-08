@@ -117,6 +117,27 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
   *entry=start;
   return PPCVM_OK;
 }
+ppcvm_result ppcvm_pegasos2_boot_elf32_abi(ppcvm_pegasos2 *m,
+    const uint8_t *image, size_t size, uint32_t info_address) {
+  uint32_t entry=0;
+  if (!m || !m->ram.data || (info_address & 3u) ||
+      (uint64_t)info_address+PPCVM_PEGASOS2_BOOT_INFO_SIZE>m->ram.size ||
+      m->ram.size>UINT32_MAX) return PPCVM_MEMORY_FAULT;
+  ppcvm_result result=ppcvm_pegasos2_load_elf32(m,image,size,&entry);
+  if (result!=PPCVM_OK) return result;
+  ppcvm_cpu_reset(&m->cpu);
+  m->cpu.pc=entry;
+  m->cpu.gpr[3]=PPCVM_PEGASOS2_BOOT_MAGIC;
+  m->cpu.gpr[4]=info_address;
+  m->cpu.gpr[5]=(uint32_t)m->ram.size;
+  m->cpu.gpr[6]=entry;
+  /* A small BE boot record for prototype guests; no Open Firmware claims. */
+  ppcvm_memory_write32be(&m->ram,info_address,PPCVM_PEGASOS2_BOOT_MAGIC);
+  ppcvm_memory_write32be(&m->ram,info_address+4u,PPCVM_PEGASOS2_BOOT_INFO_SIZE);
+  ppcvm_memory_write32be(&m->ram,info_address+8u,(uint32_t)m->ram.size);
+  ppcvm_memory_write32be(&m->ram,info_address+12u,entry);
+  return PPCVM_OK;
+}
 ppcvm_result ppcvm_pegasos2_boot_elf32(ppcvm_pegasos2 *m,
                                         const uint8_t *image, size_t size) {
   uint32_t entry=0;
