@@ -117,3 +117,15 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte(const ppcvm_segment_state *state,
   return ppcvm_mmu_lookup_pte_access(state,ram,ea,PPCVM_ACCESS_DATA_READ,
                                      physical_address);
 }
+
+/* A BAT protection violation is final; only a BAT miss falls back to PTE. */
+ppcvm_mmu_result ppcvm_mmu_translate_combined(const ppcvm_bat_state *bat,
+                                               const ppcvm_segment_state *segments,
+                                               const ppcvm_memory *ram,
+                                               uint32_t msr, uint32_t ea,
+                                               ppcvm_access access, uint32_t *pa) {
+  if (!bat || !segments || !ram || !pa) return PPCVM_MMU_UNSUPPORTED;
+  ppcvm_mmu_result result=ppcvm_mmu_translate_bat(bat,msr,ea,access,pa);
+  if (result!=PPCVM_MMU_UNSUPPORTED) return result;
+  return ppcvm_mmu_lookup_pte_access(segments,ram,ea,access,pa);
+}
