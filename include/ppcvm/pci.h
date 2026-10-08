@@ -45,4 +45,12 @@ int ppcvm_pci_bus_read32(const ppcvm_pci_bus *bus, uint8_t bus_number,
     uint8_t device, uint8_t function, uint32_t offset, uint32_t *value);
 int ppcvm_pci_bus_write32(ppcvm_pci_bus *bus, uint8_t bus_number,
     uint8_t device, uint8_t function, uint32_t offset, uint32_t value);
+/* Decode configured memory BAR address ranges (no guest bus routing yet).
+   Returns 0 for exactly one match, 1 for no match, -1 for ambiguity/error. */
+typedef struct {
+  uint8_t bus, device, function, bar_index;
+  uint64_t offset;
+} ppcvm_pci_bar_hit;
+int ppcvm_pci_bus_decode_memory(const ppcvm_pci_bus *bus, uint64_t address,
+                                 ppcvm_pci_bar_hit *hit);
 #endif
