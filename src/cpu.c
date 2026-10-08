@@ -12,12 +12,12 @@ static uint32_t ppcvm_mask32(unsigned mb, unsigned me) {
       mask |= UINT32_C(0x80000000) >> bit;
   return mask;
 }
-/* Minimal synchronous system-call exception: low vectors only, no MMU. */
-static void ppcvm_enter_syscall(ppcvm_cpu *cpu, uint32_t next_pc) {
-  cpu->srr0=next_pc;
+/* Low-vector exception model; no MMU, high vectors or cause bits yet. */
+void ppcvm_cpu_enter_exception(ppcvm_cpu *cpu, uint32_t vector, uint32_t resume_pc) {
+  cpu->srr0=resume_pc;
   cpu->srr1=cpu->msr;
   cpu->msr &= ~UINT32_C(0x0000c030); /* PR, EE, IR, DR */
-  cpu->pc=UINT32_C(0x00000c00);
+  cpu->pc=vector;
 }
 void ppcvm_cpu_reset(ppcvm_cpu *cpu) { memset(cpu, 0, sizeof(*cpu)); }
 ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_t insn) {
@@ -29,7 +29,7 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
   switch (opcode) {
     case 17: /* sc: only architecturally defined basic encoding */
       if (insn!=UINT32_C(0x44000002)) return PPCVM_UNSUPPORTED;
-      ppcvm_enter_syscall(cpu,next_pc);
+      ppcvm_cpu_enter_exception(cpu,PPCVM_VECTOR_SYSCALL,next_pc);
       return PPCVM_OK;
     case 14: /* addi */
       cpu->gpr[rt] = (ra ? cpu->gpr[ra] : 0u) + (uint32_t)(int32_t)(int16_t)imm;
