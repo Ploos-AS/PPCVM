@@ -77,6 +77,16 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
       if (ctr_ok && cond_ok) next_pc=target;
       break;
     }
+    case 31: { /* selected XFX-form special register moves */
+      uint32_t xo=(insn>>1)&1023u;
+      uint32_t spr=((insn>>16)&31u)|(((insn>>11)&31u)<<5);
+      if (xo!=339u && xo!=467u) return PPCVM_UNSUPPORTED;
+      if (spr!=8u && spr!=9u) return PPCVM_UNSUPPORTED; /* LR, CTR */
+      if (xo==339u) cpu->gpr[rt]=(spr==8u) ? cpu->lr : cpu->ctr;
+      else if (spr==8u) cpu->lr=cpu->gpr[rt];
+      else cpu->ctr=cpu->gpr[rt];
+      break;
+    }
     case 18: { /* b */
       uint32_t disp = insn & 0x03fffffcu;
       int32_t offset = (int32_t)((disp ^ 0x02000000u) - 0x02000000u);
