@@ -81,3 +81,8 @@ The ELF32 preflight also checks `PT_LOAD` flags (only PF_R/PF_W/PF_X)
 and `p_align` (zero/one or power of two, with congruent file offset and
 physical load address). These checks reject malformed segments before
 modifying guest RAM; they do not yet enforce runtime memory permissions.
+
+ELF entry validation requires a complete 4-byte instruction inside the
+file-backed portion of an executable (`PF_X`) `PT_LOAD` segment. An entry in
+BSS or a data-only segment is rejected before RAM is modified. Runtime
+execution permissions are not yet enforced by the bus or MMU.
