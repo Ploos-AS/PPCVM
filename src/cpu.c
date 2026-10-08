@@ -48,8 +48,12 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
     case 26: /* xori */
       cpu->gpr[ra] = cpu->gpr[rt] ^ imm;
       break;
-    case 28: { /* andi. */
-      cpu->gpr[ra] = cpu->gpr[rt] & imm;
+    case 27: /* xoris */
+      cpu->gpr[ra] = cpu->gpr[rt] ^ (imm << 16);
+      break;
+    case 28: /* andi. */
+    case 29: { /* andis. */
+      cpu->gpr[ra] = cpu->gpr[rt] & (opcode==29 ? (imm << 16) : imm);
       int32_t value = (int32_t)cpu->gpr[ra];
       uint32_t cr0 = value < 0 ? 8u : (value > 0 ? 4u : 2u);
       cr0 |= (cpu->xer >> 31) & 1u;
