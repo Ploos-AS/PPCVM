@@ -70,3 +70,7 @@ add_test(NAME cpu_immediate_logic COMMAND test_cpu_immediate_logic)
 add_executable(test_cpu_register_ops tests/test_cpu_register_ops.c)
 target_link_libraries(test_cpu_register_ops PRIVATE ppcvm_core)
 add_test(NAME cpu_register_ops COMMAND test_cpu_register_ops)
+
+add_executable(test_pegasos2_integration tests/test_pegasos2_integration.c)
+target_link_libraries(test_pegasos2_integration PRIVATE ppcvm_core)
+add_test(NAME pegasos2_integration COMMAND test_pegasos2_integration)
