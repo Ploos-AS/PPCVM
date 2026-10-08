@@ -85,7 +85,9 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
         (size_t)filesz>size-(size_t)offset ||
         (size_t)address>m->ram.size ||
         (size_t)memsz>m->ram.size-(size_t)address) return PPCVM_MEMORY_FAULT;
-    if (start>=address && (uint64_t)start+4u<=(uint64_t)address+memsz)
+    /* Entry must point at file-backed instructions in an executable segment. */
+    if ((flags & UINT32_C(1)) && start>=address &&
+        (uint64_t)start+4u<=(uint64_t)address+filesz)
       entry_ok=1;
     loaded++;
     for (unsigned j=0;j<i;j++) {
