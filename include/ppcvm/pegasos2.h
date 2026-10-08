@@ -33,6 +33,10 @@ ppcvm_result ppcvm_pegasos2_cold_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t
    r6=entry; all other GPRs and privileged state reset. Not an OF ABI. */
 #define PPCVM_PEGASOS2_BOOT_MAGIC UINT32_C(0x50564331)
 #define PPCVM_PEGASOS2_BOOT_INFO_SIZE UINT32_C(16)
+/* Extended PVC1 record, opt-in; first 16 bytes retain v1 layout. */
+#define PPCVM_PEGASOS2_BOOT_INFO_V2_SIZE UINT32_C(32)
+ppcvm_result ppcvm_pegasos2_boot_elf32_abi_v2(ppcvm_pegasos2 *machine,
+    const uint8_t *image, size_t size, uint32_t info_address);
 ppcvm_result ppcvm_pegasos2_boot_elf32_abi(ppcvm_pegasos2 *machine,
     const uint8_t *image, size_t size, uint32_t info_address);
 /* Load an ELF32 guest and transfer CPU PC to its validated entry. */
