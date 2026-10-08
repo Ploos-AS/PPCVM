@@ -35,3 +35,9 @@ segment configuration are retained. This is a **warm diagnostic reset**, not
 yet a faithful Pegasos II power-on reset. Use `ppcvm_pegasos2_init()` for a
 fresh machine. A later hardware reset model will define device and MMU reset
 semantics explicitly.
+
+`ppcvm_pegasos2_cold_reset()` is a separate **diagnostic** reset: it also
+zeros guest RAM and the BAT/segment/SDR1 translation state, while preserving
+mapped ROM bytes and bus regions. Unlike a hardware-faithful power cycle,
+this intentionally erases RAM and does not model firmware or device reset
+sequencing. Neither reset operation frees caller-owned ROM buffers.
