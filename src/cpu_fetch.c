@@ -24,3 +24,31 @@ ppcvm_run_report ppcvm_cpu_run_bus(ppcvm_cpu *cpu,ppcvm_bus *bus,
   report.final_pc=cpu->pc;
   return report;
 }
+
+ppcvm_run_report ppcvm_cpu_run_bus_diagnostic(ppcvm_cpu *cpu,
+    ppcvm_bus *bus,uint64_t max_steps) {
+  ppcvm_run_report report={PPCVM_RUN_INVALID,0,cpu ? cpu->pc : 0};
+  if(!cpu || !bus) return report;
+  report.reason=PPCVM_RUN_LIMIT;
+  for(uint64_t i=0;i<max_steps;i++) {
+    uint32_t instruction=0;
+    if((cpu->pc&3u) ||
+       ppcvm_bus_read32be(bus,cpu->pc,&instruction)!=PPCVM_BUS_OK) {
+      report.reason=PPCVM_RUN_MEMORY_FAULT;
+      break;
+    }
+    if(instruction==PPCVM_DIAGNOSTIC_HALT) {
+      report.reason=PPCVM_RUN_HALT;
+      break;
+    }
+    ppcvm_result result=ppcvm_cpu_step_bus(cpu,bus,instruction);
+    if(result!=PPCVM_OK) {
+      report.reason=result==PPCVM_UNSUPPORTED ?
+        PPCVM_RUN_UNSUPPORTED : PPCVM_RUN_MEMORY_FAULT;
+      break;
+    }
+    report.executed++;
+  }
+  report.final_pc=cpu->pc;
+  return report;
+}
