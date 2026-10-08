@@ -19,6 +19,13 @@ ppcvm_bus_result ppcvm_pegasos2_map_high_rom(ppcvm_pegasos2 *m, uint8_t *bytes, 
   if (!m || !bytes || size < UINT32_C(0x1000) || size > UINT32_C(0x100000)) return PPCVM_BUS_INVALID;
   return ppcvm_bus_map_memory(&m->bus,UINT32_C(0xfff00000),size,bytes,1);
 }
+void ppcvm_pegasos2_reset(ppcvm_pegasos2 *m) {
+  if (!m) return;
+  ppcvm_cpu_reset(&m->cpu);
+  m->discovery_scratch=0;
+  m->discovery_reads=0;
+  m->discovery_writes=0;
+}
 ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *m, uint32_t entry) {
   uint32_t instruction=0;
   if (!m || (entry & 3u) || entry < UINT32_C(0xfff00000) ||
