@@ -242,3 +242,7 @@ add_test(NAME pegasos2_pte_keyed_miss COMMAND test_pegasos2_pte_keyed_miss)
 add_executable(test_cpu_exception_msr tests/test_cpu_exception_msr.c)
 target_link_libraries(test_cpu_exception_msr PRIVATE ppcvm_core)
 add_test(NAME cpu_exception_msr COMMAND test_cpu_exception_msr)
+
+add_executable(test_cpu_exception_causes tests/test_cpu_exception_causes.c)
+target_link_libraries(test_cpu_exception_causes PRIVATE ppcvm_core)
+add_test(NAME cpu_exception_causes COMMAND test_cpu_exception_causes)
