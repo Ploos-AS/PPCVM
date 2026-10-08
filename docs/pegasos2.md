@@ -217,3 +217,12 @@ return -1 rather than silently choosing a device. This is a host-side
 lookup only; it does **not** attach PCI regions to PowerPC memory access,
 implement PCI command-register decode enable bits, or establish real
 Pegasos II bridge windows.
+
+### PCI Command decode enable
+
+Memory BAR lookup requires PCI Command bit 1 (Memory Space Enable).
+Devices start with memory decoding disabled; guest configuration writes
+to offset `0x04` can enable or disable it. The prototype currently
+models only writable Command bits 0–2 and treats the Status halfword as
+read-only. I/O Space Enable and Bus Master Enable are stored but not
+connected to I/O or DMA engines. This remains a standalone model.
