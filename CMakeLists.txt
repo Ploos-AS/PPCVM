@@ -58,3 +58,7 @@ add_test(NAME cpu_spr COMMAND test_cpu_spr)
 add_executable(test_cpu_bcctr tests/test_cpu_bcctr.c)
 target_link_libraries(test_cpu_bcctr PRIVATE ppcvm_core)
 add_test(NAME cpu_bcctr COMMAND test_cpu_bcctr)
+
+add_executable(test_cpu_rlwinm tests/test_cpu_rlwinm.c)
+target_link_libraries(test_cpu_rlwinm PRIVATE ppcvm_core)
+add_test(NAME cpu_rlwinm COMMAND test_cpu_rlwinm)
