@@ -69,8 +69,11 @@ int main(int argc,char **argv) {
   m.cpu.gpr[3]=0x90000000;
   m.cpu.gpr[4]=0x13579bdf;
   assert(ppcvm_pci_bus_write32(&pci,0,2,0,4,2)==0);
-  ppcvm_run_report report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,16);
-  assert(report.reason==PPCVM_RUN_HALT && report.executed==3);
+  ppcvm_run_report report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,2);
+  assert(report.reason==PPCVM_RUN_LIMIT && report.executed==2);
+  assert(report.final_pc==entry+8);
+  report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,16);
+  assert(report.reason==PPCVM_RUN_HALT && report.executed==1);
   assert(report.final_pc==entry+12);
   assert(m.cpu.gpr[5]==0x13579bdf && m.cpu.gpr[6]==0x13579bdf);
   assert(state.value==0x13579bdf && state.reads==1 && state.writes==1);
