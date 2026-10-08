@@ -26,3 +26,12 @@ that the aligned entry instruction is mapped, resets CPU registers, selects
 MSR[IP], and starts at that address. A failed entry leaves CPU state intact.
 This is a synthetic smoke-test entry, **not** a verified Pegasos II reset
 sequence or a replacement for Open Firmware. No ROM is bundled.
+
+## Reset semantics (prototype)
+
+`ppcvm_pegasos2_reset()` resets CPU registers and the synthetic Discovery
+scratch register/counters. RAM contents, ROM mappings, bus regions, BAT and
+segment configuration are retained. This is a **warm diagnostic reset**, not
+yet a faithful Pegasos II power-on reset. Use `ppcvm_pegasos2_init()` for a
+fresh machine. A later hardware reset model will define device and MMU reset
+semantics explicitly.
