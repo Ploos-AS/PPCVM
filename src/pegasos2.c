@@ -87,7 +87,12 @@ static ppcvm_result bat_spr_step(ppcvm_pegasos2 *m, uint32_t insn) {
   if (xo!=339u && xo!=467u) return PPCVM_UNSUPPORTED;
   uint32_t spr=((insn>>16)&31u)|(((insn>>11)&31u)<<5);
   if (spr<528u || spr>543u) return PPCVM_UNSUPPORTED;
-  if ((insn&1u) || (m->cpu.msr&UINT32_C(0x4000))) return PPCVM_UNSUPPORTED;
+  if (insn&1u) return PPCVM_UNSUPPORTED;
+  if (m->cpu.msr&UINT32_C(0x4000)) {
+    ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_PROGRAM,m->cpu.pc);
+    m->cpu.srr1|=UINT32_C(0x00040000); /* program exception: privileged instruction */
+    return PPCVM_OK;
+  }
   unsigned idx=(spr-528u)/2u;
   uint32_t *reg;
   if (idx<4u) reg=(spr&1u)?&m->bat.ibatl[idx]:&m->bat.ibatu[idx];
