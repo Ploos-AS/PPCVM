@@ -47,3 +47,12 @@ mapped high-ROM instruction address **before** clearing RAM and reset state.
 If validation fails, the machine is unchanged. If it succeeds, the diagnostic
 cold reset runs and the CPU begins at `entry` with MSR[IP] selected. This is
 not a real Pegasos II reset vector or Open Firmware boot protocol.
+
+## M2 synthetic firmware-to-RAM handoff
+
+`test_pegasos2_firmware_handoff` cold-boots a caller-supplied diagnostic ROM.
+The ROM constructs a PowerPC instruction in registers, writes it to guest RAM,
+sets CTR to RAM address zero, and branches via `bctr`. The CPU then fetches and
+executes that instruction from RAM. This verifies a minimal firmware-to-guest
+execution handoff using existing C11 CPU and bus components; it does **not**
+implement Open Firmware, actual Pegasos II firmware, or OS boot.
