@@ -121,3 +121,14 @@ work; no firmware services are implemented by this record.
 magic). Unsupported selectors leave the output untouched. This is a
 host API only: **guest PowerPC code cannot invoke these services yet**.
 No Open Firmware client interface is claimed.
+
+### Diagnostic guest RAM mailbox
+
+`ppcvm_pegasos2_firmware_mailbox(machine, address)` explicitly processes a
+16-byte, word-aligned mailbox in guest RAM. Big-endian words: `+0` selector,
+`+4` argument (reserved), `+8` result, `+12` status (`0` success,
+`1` unsupported, `2` invalid). A failed selector clears the result and
+sets status. The request words are preserved. The caller must explicitly
+invoke this host function after guest code writes the request; **there is
+no automatic guest trap, interrupt or MMIO trigger yet**. This mailbox is
+not an Open Firmware interface.
