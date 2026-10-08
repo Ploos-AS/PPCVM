@@ -198,3 +198,38 @@ ppcvm_mmu_result ppcvm_mmu_segment_key(const ppcvm_segment_state *state,
   *key=(sr>>((msr&UINT32_C(0x4000))?29u:30u))&1u;
   return PPCVM_MMU_OK;
 }
+\n/* Opt-in key-aware hashed PTE lookup. */\nppcvm_mmu_result ppcvm_mmu_lookup_pte_keyed(const ppcvm_segment_state *state,
+                                              const ppcvm_memory *ram, uint32_t msr, uint32_t ea,
+                                              ppcvm_access access,
+                                              uint32_t *physical_address) {
+  if (!state || !ram || !physical_address ||
+      (access!=PPCVM_ACCESS_INSTRUCTION && access!=PPCVM_ACCESS_DATA_READ &&
+       access!=PPCVM_ACCESS_DATA_WRITE)) return PPCVM_MMU_UNSUPPORTED;
+  uint32_t key=0;\n  if (ppcvm_mmu_segment_key(state,msr,ea,&key)!=PPCVM_MMU_OK)\n    return PPCVM_MMU_UNSUPPORTED;\n  uint32_t vsid=0;
+  if (ppcvm_mmu_segment_vsid(state,ea,&vsid)!=PPCVM_MMU_OK)
+    return PPCVM_MMU_UNSUPPORTED;
+  uint32_t api=(ea>>22)&UINT32_C(0x3f);
+  for (int secondary=0;secondary<=1;secondary++) {
+    uint32_t pteg=0;
+    if (ppcvm_mmu_pteg_address(state,ea,secondary,&pteg)!=PPCVM_MMU_OK)
+      return PPCVM_MMU_UNSUPPORTED;
+    for (uint32_t slot=0;slot<8;slot++) {
+      uint32_t pte0=0,pte1=0;
+      uint32_t addr=pteg+slot*8u;
+      if (ppcvm_memory_read32be(ram,addr,&pte0)!=PPCVM_MEM_OK ||
+          ppcvm_memory_read32be(ram,addr+4u,&pte1)!=PPCVM_MEM_OK)
+        return PPCVM_MMU_UNSUPPORTED;
+      if (!(pte0&UINT32_C(0x80000000))) continue;
+      if (((pte0>>7)&UINT32_C(0xffffff))!=vsid ||
+          ((pte0>>6)&1u)!=(uint32_t)secondary ||
+          (pte0&UINT32_C(0x3f))!=api) continue;
+      uint32_t pp=pte1&3u;
+      if (pp==0u || (pp==1u && access==PPCVM_ACCESS_DATA_WRITE))
+        return PPCVM_MMU_PROTECTION;
+      *physical_address=(pte1&UINT32_C(0xfffff000))|(ea&UINT32_C(0xfff));
+      return PPCVM_MMU_OK;
+    }
+  }
+  return PPCVM_MMU_UNSUPPORTED;
+}
+
