@@ -37,10 +37,9 @@ int main(void) {
   cpu.gpr[3]=0x90000000;
   cpu.gpr[4]=0xabcdef12;
   assert(ppcvm_pci_bus_write32(&pci,0,2,0,4,2)==0);
-  for(unsigned i=0;i<3;i++) {
-    assert(ppcvm_cpu_step_bus_fetch(&cpu,&bus)==PPCVM_OK);
-  }
-  assert(cpu.pc==12);
+  ppcvm_run_report report=ppcvm_cpu_run_bus(&cpu,&bus,3);
+  assert(report.reason==PPCVM_RUN_LIMIT && report.executed==3);
+  assert(report.final_pc==12 && cpu.pc==12);
   assert(cpu.gpr[5]==0xabcdef12 && cpu.gpr[6]==0xabcdef12);
   assert(state.reads==1 && state.writes==1);
   return 0;
