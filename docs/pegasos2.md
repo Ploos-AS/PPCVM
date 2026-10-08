@@ -226,3 +226,11 @@ to offset `0x04` can enable or disable it. The prototype currently
 models only writable Command bits 0–2 and treats the Status halfword as
 read-only. I/O Space Enable and Bus Master Enable are stored but not
 connected to I/O or DMA engines. This remains a standalone model.
+
+### PCI I/O-space address decoding
+
+`ppcvm_pci_bus_decode_io` resolves 32-bit I/O BAR addresses only when
+PCI Command bit 0 (I/O Space Enable) is set. Memory BARs are ignored,
+and overlaps return an error rather than selecting an arbitrary device.
+This lookup is host-side only: no PowerPC I/O access instruction,
+PCI bridge routing or port-I/O device callbacks are implemented yet.
