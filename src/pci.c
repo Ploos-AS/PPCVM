@@ -78,6 +78,12 @@ int ppcvm_pci_write32(ppcvm_pci_device *d,uint32_t offset,uint32_t value) {
   if (!d || (offset&3u) || offset>252u) return -1;
   /* Identification and class/revision registers are read-only. */
   if (offset==0u || offset==8u) return 0;
+  /* Command register bits 0-2 are writable; status is read-only here. */
+  if(offset==4u) {
+    d->config[4]=(uint8_t)(value&7u);
+    d->config[5]=0;
+    return 0;
+  }
   if(offset>=0x10u && offset<=0x24u) {
     unsigned index=(offset-0x10u)/4u;
     if(d->bar64[index] || (index>0u && d->bar64[index-1u])) {
@@ -155,6 +161,7 @@ int ppcvm_pci_bus_decode_memory(const ppcvm_pci_bus *b,uint64_t address,
   for(size_t n=0;n<b->count;n++) {
     const ppcvm_pci_slot *slot=&b->slots[n];
     const ppcvm_pci_device *d=&slot->config;
+    if(!(d->config[4]&2u)) continue; /* PCI Command: Memory Space Enable */
     for(unsigned i=0;i<6;i++) {
       uint64_t size=0,base=0;
       if(d->bar64[i]) {
