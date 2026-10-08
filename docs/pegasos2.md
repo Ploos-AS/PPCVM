@@ -170,3 +170,12 @@ prototype write API; other aligned dwords are currently plain storage.
 No BAR sizing, command-register masks, PCI bus enumeration, interrupts,
 chipset address decoding or verified Pegasos II device IDs are modeled.
 The generic PCI model is **not wired into the Pegasos II bus yet**.
+
+### Standalone PCI BDF registry
+
+`ppcvm_pci_bus` holds up to 16 test devices, addressed by PCI bus
+(0–255), device (0–31), and function (0–7). Reads from an unpopulated
+BDF return `0xffffffff`, and writes are ignored. Duplicate registrations
+and invalid device/function numbers are rejected. This remains a generic
+software model: no Pegasos II host bridge, configuration mechanism, PCI
+BAR probing or interrupt routing is connected yet.
