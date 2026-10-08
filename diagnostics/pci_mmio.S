@@ -7,6 +7,11 @@
 _start:
     stw 4,4(3)
     lwz 5,4(3)
-    ori 6,5,0
+    cmpw 5,4
+    bne failed
+    li 6,1
+    .long 0x00000000
+failed:
+    li 6,0
     .long 0x00000000
     .size _start,.-_start
