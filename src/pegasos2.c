@@ -54,6 +54,57 @@ ppcvm_result ppcvm_pegasos2_cold_boot_high_rom(ppcvm_pegasos2 *m, uint32_t entry
   m->cpu.msr=UINT32_C(0x40);
   return PPCVM_OK;
 }
+/* ELF32/PowerPC big-endian ET_EXEC loader; preflight all segments before writing. */
+static uint16_t elf16(const uint8_t *p) { return (uint16_t)(((uint16_t)p[0]<<8)|p[1]); }
+static uint32_t elf32(const uint8_t *p) {
+  return ((uint32_t)p[0]<<24)|((uint32_t)p[1]<<16)|((uint32_t)p[2]<<8)|p[3];
+}
+ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
+                                        size_t size, uint32_t *entry) {
+  if (!m || !m->ram.data || !image || !entry || size<52u ||
+      image[0]!=0x7fu || image[1]!='E' || image[2]!='L' || image[3]!='F' ||
+      image[4]!=1u || image[5]!=2u || image[6]!=1u ||
+      elf16(image+16)!=2u || elf16(image+18)!=20u ||
+      elf32(image+20)!=1u || elf16(image+40)!=52u ||
+      elf16(image+42)!=32u) return PPCVM_UNSUPPORTED;
+  uint32_t phoff=elf32(image+28), start=elf32(image+24);
+  uint16_t count=elf16(image+44);
+  if (!count || (size_t)phoff>size || (size_t)count>(size-(size_t)phoff)/32u ||
+      (start&3u) || (size_t)start>m->ram.size ||
+      m->ram.size-(size_t)start<4u) return PPCVM_MEMORY_FAULT;
+  unsigned loaded=0, entry_ok=0;
+  for (unsigned i=0;i<count;i++) {
+    const uint8_t *ph=image+(size_t)phoff+(size_t)i*32u;
+    if (elf32(ph)!=1u) continue;
+    uint32_t offset=elf32(ph+4), address=elf32(ph+12);
+    uint32_t filesz=elf32(ph+16), memsz=elf32(ph+20);
+    if (filesz>memsz || (size_t)offset>size ||
+        (size_t)filesz>size-(size_t)offset ||
+        (size_t)address>m->ram.size ||
+        (size_t)memsz>m->ram.size-(size_t)address) return PPCVM_MEMORY_FAULT;
+    if (start>=address && (uint64_t)start+4u<=(uint64_t)address+memsz)
+      entry_ok=1;
+    loaded++;
+    for (unsigned j=0;j<i;j++) {
+      const uint8_t *prev=image+(size_t)phoff+(size_t)j*32u;
+      if (elf32(prev)!=1u) continue;
+      uint32_t a=elf32(prev+12), n=elf32(prev+20);
+      if (memsz && n && (uint64_t)address<(uint64_t)a+n &&
+          (uint64_t)a<(uint64_t)address+memsz) return PPCVM_MEMORY_FAULT;
+    }
+  }
+  if (!loaded || !entry_ok) return PPCVM_MEMORY_FAULT;
+  for (unsigned i=0;i<count;i++) {
+    const uint8_t *ph=image+(size_t)phoff+(size_t)i*32u;
+    if (elf32(ph)!=1u) continue;
+    uint32_t offset=elf32(ph+4), address=elf32(ph+12);
+    uint32_t filesz=elf32(ph+16), memsz=elf32(ph+20);
+    memmove(m->ram.data+address,image+offset,filesz);
+    memset(m->ram.data+address+filesz,0,memsz-filesz);
+  }
+  *entry=start;
+  return PPCVM_OK;
+}
 ppcvm_result ppcvm_pegasos2_load_raw(ppcvm_pegasos2 *m, uint32_t address,
                                     const uint8_t *bytes, size_t size) {
   if (!m || !bytes || !size || !m->ram.data || (size_t)address > m->ram.size ||
