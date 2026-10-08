@@ -21,6 +21,8 @@ int ppcvm_pegasos2_init(ppcvm_pegasos2 *machine, size_t ram_size);
 ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *machine);
 /* Opt-in prototype: instruction fetch faults enter ISI vector 0x400. */
 ppcvm_result ppcvm_pegasos2_step_isi(ppcvm_pegasos2 *machine);
+/* Opt-in combined ISI/DSI stepping; alignment remains an explicit fault. */
+ppcvm_result ppcvm_pegasos2_step_exceptions(ppcvm_pegasos2 *machine);
 /* Runs up to limit instructions, stopping at the first fault.
    executed is set to the number of successful instructions. */
 ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *machine, size_t limit, size_t *executed);
