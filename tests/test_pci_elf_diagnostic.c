@@ -66,6 +66,16 @@ int main(int argc,char **argv) {
   }
   assert(ppcvm_pegasos2_boot_elf32(&m,image,image_size)==PPCVM_OK);
   assert(m.cpu.pc==entry);
+  /* Confirm that the loaded guest contains the expected instruction stream. */
+  uint32_t instruction=0;
+  assert(ppcvm_bus_read32be(&m.bus,entry,&instruction)==PPCVM_BUS_OK);
+  assert(instruction==((36u<<26)|(4u<<21)|(3u<<16)|4u));
+  assert(ppcvm_bus_read32be(&m.bus,entry+4,&instruction)==PPCVM_BUS_OK);
+  assert(instruction==((32u<<26)|(5u<<21)|(3u<<16)|4u));
+  assert(ppcvm_bus_read32be(&m.bus,entry+8,&instruction)==PPCVM_BUS_OK);
+  assert(instruction==((24u<<26)|(5u<<21)|(6u<<16)));
+  assert(ppcvm_bus_read32be(&m.bus,entry+12,&instruction)==PPCVM_BUS_OK);
+  assert(instruction==PPCVM_DIAGNOSTIC_HALT);
   m.cpu.gpr[3]=0x90000000;
   m.cpu.gpr[4]=0x13579bdf;
   assert(ppcvm_pci_bus_write32(&pci,0,2,0,4,2)==0);
