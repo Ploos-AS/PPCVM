@@ -16,3 +16,13 @@ proprietary firmware or commercial OS images in the repository.
 
 Classic Amiga PPC accelerator machines remain a separate future integration track
 with AmiVM handling Amiga chipset/68k and PPCVM supplying the PPC core.
+
+## Experimental high-ROM entry
+
+`ppcvm_pegasos2_map_high_rom(machine, bytes, size)` maps caller-owned, read-only
+bytes at `0xfff00000` (size 4 KiB to 1 MiB). Keep the bytes alive until the
+machine is destroyed. `ppcvm_pegasos2_boot_high_rom(machine, entry)` checks
+that the aligned entry instruction is mapped, resets CPU registers, selects
+MSR[IP], and starts at that address. A failed entry leaves CPU state intact.
+This is a synthetic smoke-test entry, **not** a verified Pegasos II reset
+sequence or a replacement for Open Firmware. No ROM is bundled.
