@@ -25,6 +25,12 @@ typedef struct {
 #define PPCVM_PEGASOS2_FW_QUERY_BOOT_MAGIC UINT32_C(3)
 ppcvm_result ppcvm_pegasos2_firmware_query(const ppcvm_pegasos2 *machine,
     uint32_t selector, uint32_t *value);
+/* Diagnostic mailbox: four BE words at address: selector, argument,
+   result, status. Host processes one request on explicit invocation.
+   status 0=OK, 1=unsupported, 2=invalid. No automatic MMIO trap. */
+#define PPCVM_PEGASOS2_FW_MAILBOX_SIZE UINT32_C(16)
+ppcvm_result ppcvm_pegasos2_firmware_mailbox(ppcvm_pegasos2 *machine,
+    uint32_t address);
 /* Map caller-owned, read-only diagnostic/firmware bytes at the high vector prefix. */
 ppcvm_bus_result ppcvm_pegasos2_map_high_rom(ppcvm_pegasos2 *machine, uint8_t *bytes, uint32_t size);
 /* Reset CPU and synthetic device state without clearing RAM or ROM mappings. */
