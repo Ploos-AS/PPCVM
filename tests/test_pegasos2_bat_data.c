@@ -9,7 +9,7 @@ int main(void) {
   m.bat.ibatu[0]=UINT32_C(0x80000002);
   m.bat.ibatl[0]=0;
   m.bat.dbatu[0]=UINT32_C(0x90000002);
-  m.bat.dbatl[0]=0;
+  m.bat.dbatl[0]=2;
   m.cpu.pc=UINT32_C(0x80000000);
   m.cpu.msr=UINT32_C(0x30);
   m.cpu.gpr[4]=UINT32_C(0x90000100);
