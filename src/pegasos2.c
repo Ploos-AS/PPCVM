@@ -1,5 +1,23 @@
 #include "ppcvm/pegasos2.h"
 #include <string.h>
+ppcvm_result ppcvm_pegasos2_firmware_query(const ppcvm_pegasos2 *m,
+    uint32_t selector, uint32_t *value) {
+  if (!m || !value || !m->ram.data) return PPCVM_MEMORY_FAULT;
+  uint32_t result=0;
+  switch (selector) {
+    case PPCVM_PEGASOS2_FW_QUERY_VERSION: result=2u; break;
+    case PPCVM_PEGASOS2_FW_QUERY_RAM_BYTES:
+      if (m->ram.size>UINT32_MAX) return PPCVM_UNSUPPORTED;
+      result=(uint32_t)m->ram.size;
+      break;
+    case PPCVM_PEGASOS2_FW_QUERY_BOOT_MAGIC:
+      result=PPCVM_PEGASOS2_BOOT_MAGIC;
+      break;
+    default: return PPCVM_UNSUPPORTED;
+  }
+  *value=result;
+  return PPCVM_OK;
+}
 /* Scratch register is a synthetic diagnostic placeholder, not a Discovery II register. */
 static ppcvm_bus_result discovery_read(void *context, uint32_t offset, uint32_t *value) {
   ppcvm_pegasos2 *m=(ppcvm_pegasos2 *)context;
