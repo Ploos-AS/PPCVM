@@ -14,6 +14,7 @@ typedef struct {
   ppcvm_memory ram;
   ppcvm_bus bus;
   ppcvm_bat_state bat;
+  ppcvm_segment_state segments;
   uint32_t discovery_scratch;
   uint32_t discovery_reads;
   uint32_t discovery_writes;
