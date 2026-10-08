@@ -42,6 +42,11 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_access(const ppcvm_segment_state *state,
    Instruction fetch uses the read permission path in this prototype. */
 ppcvm_mmu_result ppcvm_mmu_check_pte_permission(uint32_t key, uint32_t pp,
                                                  ppcvm_access access);
+/* Segment key from SR Ks/Kp (bits 30/29) selected by MSR[PR].
+   This helper is opt-in until the key-aware walker is integrated. */
+ppcvm_mmu_result ppcvm_mmu_segment_key(const ppcvm_segment_state *state,
+                                        uint32_t msr, uint32_t ea,
+                                        uint32_t *key);
 /* Opt-in mutable PTE walk: set R (bit 8) on reads/fetches and R+C
    (bits 8,7) on writes after a permitted translation. CPU stepping uses this after successful bus accesses; segment keys are\n   not yet wired into the CPU translation path. */
 ppcvm_mmu_result ppcvm_mmu_lookup_pte_rc(const ppcvm_segment_state *state,
