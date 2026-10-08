@@ -17,8 +17,10 @@ int main(void) {
   assert(r.reason==PPCVM_RUN_LIMIT && r.executed==2 && r.final_pc==8);
   assert(cpu.gpr[3]==3);
   r=ppcvm_cpu_run_bus(&cpu,&bus,3);
-  assert(r.reason==PPCVM_RUN_MEMORY_FAULT && r.executed==2 && r.final_pc==16);
+  assert(r.reason==PPCVM_RUN_LIMIT && r.executed==3 && r.final_pc==20);
   assert(cpu.gpr[3]==6);
+  r=ppcvm_cpu_run_bus(&cpu,&bus,1);
+  assert(r.reason==PPCVM_RUN_MEMORY_FAULT && r.executed==0 && r.final_pc==20);
   r=ppcvm_cpu_run_bus(0,&bus,1);
   assert(r.reason==PPCVM_RUN_INVALID && r.executed==0);
   r=ppcvm_cpu_run_bus(&cpu,0,1);
