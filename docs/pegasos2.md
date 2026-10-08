@@ -41,3 +41,9 @@ zeros guest RAM and the BAT/segment/SDR1 translation state, while preserving
 mapped ROM bytes and bus regions. Unlike a hardware-faithful power cycle,
 this intentionally erases RAM and does not model firmware or device reset
 sequencing. Neither reset operation frees caller-owned ROM buffers.
+
+`ppcvm_pegasos2_cold_boot_high_rom(machine, entry)` validates an aligned,
+mapped high-ROM instruction address **before** clearing RAM and reset state.
+If validation fails, the machine is unchanged. If it succeeds, the diagnostic
+cold reset runs and the CPU begins at `entry` with MSR[IP] selected. This is
+not a real Pegasos II reset vector or Open Firmware boot protocol.
