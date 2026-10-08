@@ -141,6 +141,19 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
     case 31: { /* selected XFX-form special register moves */
       uint32_t xo=(insn>>1)&1023u;
       uint32_t spr=((insn>>16)&31u)|(((insn>>11)&31u)<<5);
+      if (xo==4u) { /* tw: trap word register */
+        uint32_t to=rt, a=cpu->gpr[ra], b=cpu->gpr[(insn>>11)&31u];
+        int32_t sa=(int32_t)a, sb=(int32_t)b;
+        int trap=((to&16u) && sa<sb) || ((to&8u) && sa>sb) ||
+                 ((to&4u) && a==b) || ((to&2u) && a<b) || ((to&1u) && a>b);
+        if ((insn&1u)!=0u) return PPCVM_UNSUPPORTED;
+        if (trap) {
+          ppcvm_cpu_enter_exception(cpu,PPCVM_VECTOR_PROGRAM,cpu->pc);
+          cpu->srr1|=UINT32_C(0x00020000);
+          return PPCVM_OK;
+        }
+        break;
+      }
       if (xo==266u || xo==40u || xo==444u || xo==316u || xo==28u) {
         /* X-form arithmetic and logic. These variants do not set XER overflow. */
         uint32_t rb=(insn>>11)&31u;
