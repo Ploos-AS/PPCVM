@@ -31,6 +31,52 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
       cpu->cr = (cpu->cr & 0x0fffffffu) | (cr0 << 28);
       break;
     }
+    case 11: /* cmpi: signed compare */
+    case 10: { /* cmpli: unsigned compare */
+      uint32_t bf=(insn>>23)&7u;
+      uint32_t field=(insn>>21)&3u;
+      if (field != 0u) return PPCVM_UNSUPPORTED; /* 32-bit only, reserved bit clear */
+      uint32_t a=cpu->gpr[ra];
+      uint32_t b=opcode==11 ? (uint32_t)(int32_t)(int16_t)imm : imm;
+      uint32_t bits;
+      if (opcode==11) {
+        int32_t sa=(int32_t)a, sb=(int32_t)b;
+        bits=sa<sb ? 8u : (sa>sb ? 4u : 2u);
+      } else {
+        bits=a<b ? 8u : (a>b ? 4u : 2u);
+      }
+      bits|=(cpu->xer>>31)&1u;
+      uint32_t shift=28u-4u*bf;
+      cpu->cr=(cpu->cr & ~(15u<<shift)) | (bits<<shift);
+      break;
+    }
+    case 16: { /* bc: conditional branch */
+      uint32_t bo=(insn>>21)&31u;
+      uint32_t bi=(insn>>16)&31u;
+      uint32_t bd=insn&0xfffcu;
+      int32_t offset=(int32_t)((bd^0x8000u)-0x8000u);
+      if ((bo & 4u)==0u) cpu->ctr--;
+      int ctr_ok=(bo&4u)!=0u || ((cpu->ctr!=0u) != ((bo&2u)!=0u));
+      int cr_bit=(int)((cpu->cr>>(31u-bi))&1u);
+      int cond_ok=(bo&16u)!=0u || (cr_bit==((bo&8u)!=0u));
+      if (insn&1u) cpu->lr=next_pc;
+      if (ctr_ok && cond_ok) next_pc=(insn&2u) ? (uint32_t)offset : cpu->pc+(uint32_t)offset;
+      break;
+    }
+    case 19: { /* bclr: branch to link register */
+      uint32_t xo=(insn>>1)&1023u;
+      uint32_t bo=(insn>>21)&31u;
+      uint32_t bi=(insn>>16)&31u;
+      if (xo!=16u || (insn&0x0000e000u)!=0u) return PPCVM_UNSUPPORTED;
+      uint32_t target=cpu->lr & ~3u;
+      if ((bo&4u)==0u) cpu->ctr--;
+      int ctr_ok=(bo&4u)!=0u || ((cpu->ctr!=0u) != ((bo&2u)!=0u));
+      int cr_bit=(int)((cpu->cr>>(31u-bi))&1u);
+      int cond_ok=(bo&16u)!=0u || (cr_bit==((bo&8u)!=0u));
+      if (insn&1u) cpu->lr=next_pc;
+      if (ctr_ok && cond_ok) next_pc=target;
+      break;
+    }
     case 18: { /* b */
       uint32_t disp = insn & 0x03fffffcu;
       int32_t offset = (int32_t)((disp ^ 0x02000000u) - 0x02000000u);
