@@ -54,3 +54,22 @@ ppcvm_mmu_result ppcvm_mmu_segment_vsid(const ppcvm_segment_state *state,
   *vsid=sr&UINT32_C(0x00ffffff);
   return PPCVM_MMU_OK;
 }
+
+/* 32-bit PowerPC hash: VSID[18:0] xor page index[15:0].
+   SDR1 HTABORG contributes upper address bits, HTABMASK selects hash bits.
+   This routine only calculates a candidate PTEG address. */
+ppcvm_mmu_result ppcvm_mmu_pteg_address(const ppcvm_segment_state *state,
+                                         uint32_t ea, int secondary,
+                                         uint32_t *physical_address) {
+  if (!state || !physical_address || (secondary!=0 && secondary!=1))
+    return PPCVM_MMU_UNSUPPORTED;
+  uint32_t vsid=0;
+  if (ppcvm_mmu_segment_vsid(state,ea,&vsid)!=PPCVM_MMU_OK)
+    return PPCVM_MMU_UNSUPPORTED;
+  uint32_t hash=(vsid&UINT32_C(0x7ffff))^((ea>>12)&UINT32_C(0xffff));
+  if (secondary) hash=~hash;
+  uint32_t mask=(state->sdr1&UINT32_C(0x1ff))<<10;
+  uint32_t index=hash&(mask|UINT32_C(0x3ff));
+  *physical_address=(state->sdr1&UINT32_C(0xffff0000))|(index<<6);
+  return PPCVM_MMU_OK;
+}
