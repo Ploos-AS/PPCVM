@@ -213,3 +213,32 @@ int ppcvm_pci_bus_decode_io(const ppcvm_pci_bus *b,uint32_t address,
   if(found) *hit=candidate;
   return found ? 0 : 1;
 }
+
+int ppcvm_pci_bus_set_mmio(ppcvm_pci_bus *b,uint8_t bus,uint8_t dev,
+    uint8_t fn,void *ctx,
+    int (*read32)(void *,uint8_t,uint64_t,uint32_t *),
+    int (*write32)(void *,uint8_t,uint64_t,uint32_t)) {
+  if(!b || dev>=32u || fn>=8u) return -1;
+  ppcvm_pci_slot *slot=find_slot(b,bus,dev,fn);
+  if(!slot) return -1;
+  slot->mmio_context=ctx;
+  slot->mmio_read32=read32;
+  slot->mmio_write32=write32;
+  return 0;
+}
+int ppcvm_pci_bus_mmio_read32(ppcvm_pci_bus *b,uint64_t address,uint32_t *value) {
+  if(!b || !value || (address&3u)) return -1;
+  ppcvm_pci_bar_hit hit;
+  if(ppcvm_pci_bus_decode_memory(b,address,&hit)!=0) return -1;
+  ppcvm_pci_slot *slot=find_slot(b,hit.bus,hit.device,hit.function);
+  if(!slot || !slot->mmio_read32) return -1;
+  return slot->mmio_read32(slot->mmio_context,hit.bar_index,hit.offset,value);
+}
+int ppcvm_pci_bus_mmio_write32(ppcvm_pci_bus *b,uint64_t address,uint32_t value) {
+  if(!b || (address&3u)) return -1;
+  ppcvm_pci_bar_hit hit;
+  if(ppcvm_pci_bus_decode_memory(b,address,&hit)!=0) return -1;
+  ppcvm_pci_slot *slot=find_slot(b,hit.bus,hit.device,hit.function);
+  if(!slot || !slot->mmio_write32) return -1;
+  return slot->mmio_write32(slot->mmio_context,hit.bar_index,hit.offset,value);
+}
