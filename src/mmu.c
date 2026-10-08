@@ -229,7 +229,7 @@ ppcvm_mmu_result ppcvm_mmu_lookup_pte_keyed(const ppcvm_segment_state *state,
           ((pte0>>6)&1u)!=(uint32_t)secondary ||
           (pte0&UINT32_C(0x3f))!=api) continue;
       uint32_t pp=pte1&3u;
-      if (pp==0u || (pp==1u && access==PPCVM_ACCESS_DATA_WRITE))
+      if (ppcvm_mmu_check_pte_permission(key,pp,access)!=PPCVM_MMU_OK)
         return PPCVM_MMU_PROTECTION;
       *physical_address=(pte1&UINT32_C(0xfffff000))|(ea&UINT32_C(0xfff));
       return PPCVM_MMU_OK;
