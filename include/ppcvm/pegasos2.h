@@ -3,6 +3,7 @@
 #include "ppcvm/bus.h"
 #include "ppcvm/cpu.h"
 #include "ppcvm/memory.h"
+#include "ppcvm/mmu.h"
 #include <stddef.h>
 #include <stdint.h>
 /* Provisional discovery window for testing, not a validated Pegasos II map. */
@@ -12,6 +13,7 @@ typedef struct {
   ppcvm_cpu cpu;
   ppcvm_memory ram;
   ppcvm_bus bus;
+  ppcvm_bat_state bat;
   uint32_t discovery_scratch;
   uint32_t discovery_reads;
   uint32_t discovery_writes;
@@ -23,6 +25,8 @@ ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *machine);
 ppcvm_result ppcvm_pegasos2_step_isi(ppcvm_pegasos2 *machine);
 /* Opt-in combined ISI/DSI stepping; alignment remains an explicit fault. */
 ppcvm_result ppcvm_pegasos2_step_exceptions(ppcvm_pegasos2 *machine);
+/* Opt-in BAT instruction fetch; data accesses still use physical bus addresses. */
+ppcvm_result ppcvm_pegasos2_step_bat_fetch(ppcvm_pegasos2 *machine);
 /* Runs up to limit instructions, stopping at the first fault.
    executed is set to the number of successful instructions. */
 ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *machine, size_t limit, size_t *executed);
