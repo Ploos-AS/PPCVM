@@ -29,6 +29,12 @@ void ppcvm_pegasos2_cold_reset(ppcvm_pegasos2 *machine);
 ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t entry);
 /* Validate ROM entry, then cold-reset machine and begin execution there. */
 ppcvm_result ppcvm_pegasos2_cold_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t entry);
+/* Diagnostic boot ABI v1: registers r3=magic, r4=info address, r5=RAM bytes,
+   r6=entry; all other GPRs and privileged state reset. Not an OF ABI. */
+#define PPCVM_PEGASOS2_BOOT_MAGIC UINT32_C(0x50564331)
+#define PPCVM_PEGASOS2_BOOT_INFO_SIZE UINT32_C(16)
+ppcvm_result ppcvm_pegasos2_boot_elf32_abi(ppcvm_pegasos2 *machine,
+    const uint8_t *image, size_t size, uint32_t info_address);
 /* Load an ELF32 guest and transfer CPU PC to its validated entry. */
 ppcvm_result ppcvm_pegasos2_boot_elf32(ppcvm_pegasos2 *machine, const uint8_t *image, size_t size);
 /* Load ELF32 big-endian PowerPC PT_LOAD segments into guest RAM atomically. */
