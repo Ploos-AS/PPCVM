@@ -20,6 +20,11 @@ typedef struct {
 } ppcvm_segment_state;
 ppcvm_mmu_result ppcvm_mmu_segment_vsid(const ppcvm_segment_state *state,
                                          uint32_t ea, uint32_t *vsid);
+/* Initial 32-bit hashed page table address calculation (PTEG address only).
+   No PTE scanning, page permissions, or TLB behavior is implied. */
+ppcvm_mmu_result ppcvm_mmu_pteg_address(const ppcvm_segment_state *state,
+                                         uint32_t ea, int secondary,
+                                         uint32_t *physical_address);
 /* Supports 128 KiB to 256 MiB BAT blocks, VS/VP and physical block mapping.
    PP=00 denies data and PP=01 is read-only in the current simplified model.
    Full privilege/key semantics, WIMG and page tables are not implemented. */
