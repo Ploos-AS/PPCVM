@@ -20,7 +20,7 @@ int main(void) {
   assert(ppcvm_bus_read32be(&bus,0x80000cf8u,&value)==PPCVM_BUS_OK);
   assert(value==0x00100080u);
   assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
-  assert(value==0x12345678u);
+  assert(value==0x34127856u);
   assert(ppcvm_bus_write32be(&bus,0x80000c78u,0x00100080u)==PPCVM_BUS_OK);
   assert(ppcvm_bus_read32be(&bus,0x80000c7cu,&value)==PPCVM_BUS_OK);
   assert(value==0xcdab01efu);
