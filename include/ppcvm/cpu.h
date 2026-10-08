@@ -10,6 +10,9 @@ typedef struct {
   uint32_t ctr;
   uint32_t cr;
   uint32_t xer;
+  uint32_t msr;
+  uint32_t srr0;
+  uint32_t srr1;
 } ppcvm_cpu;
 typedef enum { PPCVM_OK = 0, PPCVM_UNSUPPORTED = 1, PPCVM_MEMORY_FAULT = 2 } ppcvm_result;
 void ppcvm_cpu_reset(ppcvm_cpu *cpu);
