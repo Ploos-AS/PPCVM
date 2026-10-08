@@ -86,3 +86,7 @@ add_test(NAME cpu_syscall COMMAND test_cpu_syscall)
 add_executable(test_cpu_exception_entry tests/test_cpu_exception_entry.c)
 target_link_libraries(test_cpu_exception_entry PRIVATE ppcvm_core)
 add_test(NAME cpu_exception_entry COMMAND test_cpu_exception_entry)
+
+add_executable(test_cpu_twi tests/test_cpu_twi.c)
+target_link_libraries(test_cpu_twi PRIVATE ppcvm_core)
+add_test(NAME cpu_twi COMMAND test_cpu_twi)
