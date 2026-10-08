@@ -139,6 +139,16 @@ static ppcvm_result step_translated(ppcvm_pegasos2 *m, int use_pte) {
     ppcvm_cpu_enter_exception(&m->cpu,PPCVM_VECTOR_ISI,m->cpu.pc);
     return PPCVM_OK;
   }
+  if (use_pte && (m->cpu.msr&UINT32_C(0x20))) {
+    uint32_t bat_pa=0;
+    if (ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,m->cpu.pc,
+                                PPCVM_ACCESS_INSTRUCTION,&bat_pa)==PPCVM_MMU_UNSUPPORTED) {
+      uint32_t rc_pa=0;
+      if (ppcvm_mmu_lookup_pte_rc(&m->segments,&m->ram,m->cpu.pc,
+                                  PPCVM_ACCESS_INSTRUCTION,&rc_pa)!=PPCVM_MMU_OK ||
+          rc_pa!=physical) return PPCVM_MEMORY_FAULT;
+    }
+  }
   uint32_t op=instruction>>26;
   if (op==31u) {
     uint32_t xo=(instruction>>1)&1023u;
@@ -187,6 +197,14 @@ static ppcvm_result step_translated(ppcvm_pegasos2 *m, int use_pte) {
   } else {
     status=ppcvm_bus_write8(&m->bus,physical,(uint8_t)m->cpu.gpr[rt]);
     if (status!=PPCVM_BUS_OK) goto fault;
+  }
+  if (use_pte && (m->cpu.msr&UINT32_C(0x10))) {
+    uint32_t bat_pa=0;
+    if (ppcvm_mmu_translate_bat(&m->bat,m->cpu.msr,ea,access,&bat_pa)==PPCVM_MMU_UNSUPPORTED) {
+      uint32_t rc_pa=0;
+      if (ppcvm_mmu_lookup_pte_rc(&m->segments,&m->ram,ea,access,&rc_pa)!=PPCVM_MMU_OK ||
+          rc_pa!=physical) return PPCVM_MEMORY_FAULT;
+    }
   }
   m->cpu.pc+=4;
   return PPCVM_OK;
