@@ -66,7 +66,8 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
       image[4]!=1u || image[5]!=2u || image[6]!=1u ||
       elf16(image+16)!=2u || elf16(image+18)!=20u ||
       elf32(image+20)!=1u || elf16(image+40)!=52u ||
-      elf16(image+42)!=32u) return PPCVM_UNSUPPORTED;
+      elf16(image+42)!=32u || elf16(image+46)!=0u ||
+      elf16(image+48)!=0u || elf16(image+50)!=0u) return PPCVM_UNSUPPORTED;
   uint32_t phoff=elf32(image+28), start=elf32(image+24);
   uint16_t count=elf16(image+44);
   if (!count || (size_t)phoff>size || (size_t)count>(size-(size_t)phoff)/32u ||
