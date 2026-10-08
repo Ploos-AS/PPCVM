@@ -73,3 +73,33 @@ ppcvm_mmu_result ppcvm_mmu_pteg_address(const ppcvm_segment_state *state,
   *physical_address=(state->sdr1&UINT32_C(0xffff0000))|(index<<6);
   return PPCVM_MMU_OK;
 }
+
+/* First functional PTE scan. Physical RAM only, no protection/R/C handling. */
+ppcvm_mmu_result ppcvm_mmu_lookup_pte(const ppcvm_segment_state *state,
+                                       const ppcvm_memory *ram, uint32_t ea,
+                                       uint32_t *physical_address) {
+  if (!state || !ram || !physical_address) return PPCVM_MMU_UNSUPPORTED;
+  uint32_t vsid=0;
+  if (ppcvm_mmu_segment_vsid(state,ea,&vsid)!=PPCVM_MMU_OK)
+    return PPCVM_MMU_UNSUPPORTED;
+  uint32_t api=(ea>>22)&UINT32_C(0x3f);
+  for (int secondary=0;secondary<=1;secondary++) {
+    uint32_t pteg=0;
+    if (ppcvm_mmu_pteg_address(state,ea,secondary,&pteg)!=PPCVM_MMU_OK)
+      return PPCVM_MMU_UNSUPPORTED;
+    for (uint32_t slot=0;slot<8;slot++) {
+      uint32_t pte0=0,pte1=0;
+      uint32_t addr=pteg+slot*8u;
+      if (ppcvm_memory_read32be(ram,addr,&pte0)!=PPCVM_MEM_OK ||
+          ppcvm_memory_read32be(ram,addr+4u,&pte1)!=PPCVM_MEM_OK)
+        return PPCVM_MMU_UNSUPPORTED;
+      if (!(pte0&UINT32_C(0x80000000))) continue;
+      if (((pte0>>7)&UINT32_C(0xffffff))!=vsid ||
+          ((pte0>>6)&1u)!=(uint32_t)secondary ||
+          (pte0&UINT32_C(0x3f))!=api) continue;
+      *physical_address=(pte1&UINT32_C(0xfffff000))|(ea&UINT32_C(0xfff));
+      return PPCVM_MMU_OK;
+    }
+  }
+  return PPCVM_MMU_UNSUPPORTED;
+}
