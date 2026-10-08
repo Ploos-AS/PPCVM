@@ -19,7 +19,7 @@ typedef struct {
   uint32_t discovery_reads;
   uint32_t discovery_writes;
 } ppcvm_pegasos2;
-/* Host-side diagnostic firmware information service; no guest trap ABI yet. */
+/* PVC1 diagnostic metadata queries; opt-in guest trap is available below. */
 #define PPCVM_PEGASOS2_FW_QUERY_VERSION UINT32_C(1)
 #define PPCVM_PEGASOS2_FW_QUERY_RAM_BYTES UINT32_C(2)
 #define PPCVM_PEGASOS2_FW_QUERY_BOOT_MAGIC UINT32_C(3)
@@ -27,8 +27,11 @@ ppcvm_result ppcvm_pegasos2_firmware_query(const ppcvm_pegasos2 *machine,
     uint32_t selector, uint32_t *value);
 /* Diagnostic mailbox: four BE words at address: selector, argument,
    result, status. Host processes one request on explicit invocation.
-   status 0=OK, 1=unsupported, 2=invalid. No automatic MMIO trap. */
+   status 0=OK, 1=unsupported, 2=invalid. Explicit host or opt-in sc trap. */
 #define PPCVM_PEGASOS2_FW_MAILBOX_SIZE UINT32_C(16)
+#define PPCVM_PEGASOS2_FW_STATUS_OK UINT32_C(0)
+#define PPCVM_PEGASOS2_FW_STATUS_UNSUPPORTED UINT32_C(1)
+#define PPCVM_PEGASOS2_FW_STATUS_INVALID UINT32_C(2)
 ppcvm_result ppcvm_pegasos2_firmware_mailbox(ppcvm_pegasos2 *machine,
     uint32_t address);
 /* Map caller-owned, read-only diagnostic/firmware bytes at the high vector prefix. */
