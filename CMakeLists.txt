@@ -18,3 +18,7 @@ add_test(NAME cpu_basics COMMAND test_cpu)
 add_executable(test_memory tests/test_memory.c)
 target_link_libraries(test_memory PRIVATE ppcvm_core)
 add_test(NAME memory_basics COMMAND test_memory)
+
+add_executable(test_load_store tests/test_load_store.c)
+target_link_libraries(test_load_store PRIVATE ppcvm_core)
+add_test(NAME load_store COMMAND test_load_store)
