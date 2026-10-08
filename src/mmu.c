@@ -198,14 +198,19 @@ ppcvm_mmu_result ppcvm_mmu_segment_key(const ppcvm_segment_state *state,
   *key=(sr>>((msr&UINT32_C(0x4000))?29u:30u))&1u;
   return PPCVM_MMU_OK;
 }
-\n/* Opt-in key-aware hashed PTE lookup. */\nppcvm_mmu_result ppcvm_mmu_lookup_pte_keyed(const ppcvm_segment_state *state,
+
+/* Opt-in key-aware hashed PTE lookup. */
+ppcvm_mmu_result ppcvm_mmu_lookup_pte_keyed(const ppcvm_segment_state *state,
                                               const ppcvm_memory *ram, uint32_t msr, uint32_t ea,
                                               ppcvm_access access,
                                               uint32_t *physical_address) {
   if (!state || !ram || !physical_address ||
       (access!=PPCVM_ACCESS_INSTRUCTION && access!=PPCVM_ACCESS_DATA_READ &&
        access!=PPCVM_ACCESS_DATA_WRITE)) return PPCVM_MMU_UNSUPPORTED;
-  uint32_t key=0;\n  if (ppcvm_mmu_segment_key(state,msr,ea,&key)!=PPCVM_MMU_OK)\n    return PPCVM_MMU_UNSUPPORTED;\n  uint32_t vsid=0;
+  uint32_t key=0;
+  if (ppcvm_mmu_segment_key(state,msr,ea,&key)!=PPCVM_MMU_OK)
+    return PPCVM_MMU_UNSUPPORTED;
+  uint32_t vsid=0;
   if (ppcvm_mmu_segment_vsid(state,ea,&vsid)!=PPCVM_MMU_OK)
     return PPCVM_MMU_UNSUPPORTED;
   uint32_t api=(ea>>22)&UINT32_C(0x3f);
