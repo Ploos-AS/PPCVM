@@ -25,6 +25,12 @@ jobs:
           mkdir -p build/diagnostics
           powerpc-linux-gnu-as -mppc -o build/diagnostics/pci_mmio.o diagnostics/pci_mmio.S
           powerpc-linux-gnu-ld -m elf32ppclinux -T diagnostics/pci_mmio.ld -o build/diagnostics/pci_mmio.elf build/diagnostics/pci_mmio.o
+      - name: Configure and build PPCVM integration test
+        run: |
+          cmake -S . -B build/host -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build/host --target test_pci_elf_diagnostic --parallel
+      - name: Execute cross-built ELF in PPCVM
+        run: build/host/test_pci_elf_diagnostic build/diagnostics/pci_mmio.elf
       - name: Verify ELF and disassembly
         run: |
           powerpc-linux-gnu-readelf -h -l build/diagnostics/pci_mmio.elf
