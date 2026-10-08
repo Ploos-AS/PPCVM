@@ -198,3 +198,12 @@ size >=4 bytes). Probing returns the I/O address mask with bit 0 set;
 normal writes retain bit 0 and align the address. Memory and I/O BARs
 can coexist on a device. This is configuration-space emulation only:
 there is no CPU port-I/O mapping or Pegasos II host-bridge decoding.
+
+### PCI 64-bit memory BAR prototype
+
+`ppcvm_pci_set_mem_bar64` reserves two consecutive BAR registers,
+starting at indices 0–4. Both low and high 32-bit halves support
+independent sizing probes; the low half reports memory type `10b`.
+Sizes are power-of-two, at least 16 bytes, and can exceed 4 GiB.
+Configuration writes are masked to the configured size. This is still
+an isolated PCI configuration model without real MMIO decoding.
