@@ -322,3 +322,13 @@ counts and register round-trip. The test builds ELF bytes on the host;
 it does not invoke an external PowerPC cross-compiler or boot real
 firmware. PCI registration, BAR configuration and guest register inputs
 are host-provided; this is not an OS boot.
+
+### Cross-assembled PCI diagnostic source
+
+`diagnostics/pci_mmio.S` is a freestanding PowerPC assembly source with
+`stw`, `lwz`, `ori` and the PPCVM-only diagnostic halt marker. Its linker
+script places the entry at guest address `0x100`. The separate CI job
+`powerpc-assembly` builds an ELF32 image using GNU PowerPC cross-binutils
+and prints ELF metadata and disassembly. The existing C integration test
+still constructs its own ELF bytes and does not yet load the CI-built
+artifact. The host supplies PCI BAR configuration and initial registers.
