@@ -94,3 +94,13 @@ ELF32 executable, then sets CPU PC to its file-backed executable entry.
 It leaves CPU registers and MSR unchanged, does not perform cold reset, and
 is **not** a firmware boot protocol. Rejected ELF files leave the CPU PC
 and RAM unchanged; successful loading intentionally replaces RAM segments.
+
+## Experimental boot ABI v1
+
+`ppcvm_pegasos2_boot_elf32_abi(machine, image, size, info_address)` loads an
+ELF32 guest, resets CPU state, and enters the ELF entry with `r3=0x50564331`
+(`PVC1`), `r4=info_address`, `r5=RAM size`, `r6=entry`. The 16-byte
+big-endian record at `info_address` contains magic, record length, RAM size,
+and entry. The record must be word-aligned, fit in RAM and not overlap any
+ELF `PT_LOAD` memory region. This is a PPCVM-only diagnostic convention,
+**not** Open Firmware, CHRP, or a MorphOS/AmigaOS boot ABI.
