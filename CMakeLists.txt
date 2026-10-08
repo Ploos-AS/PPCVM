@@ -262,3 +262,7 @@ add_test(NAME pegasos2_high_rom COMMAND test_pegasos2_high_rom)
 add_executable(test_pegasos2_boot_high_rom tests/test_pegasos2_boot_high_rom.c)
 target_link_libraries(test_pegasos2_boot_high_rom PRIVATE ppcvm_core)
 add_test(NAME pegasos2_boot_high_rom COMMAND test_pegasos2_boot_high_rom)
+
+add_executable(test_pegasos2_reset tests/test_pegasos2_reset.c)
+target_link_libraries(test_pegasos2_reset PRIVATE ppcvm_core)
+add_test(NAME pegasos2_reset COMMAND test_pegasos2_reset)
