@@ -25,7 +25,7 @@ int main(void) {
   assert(ppcvm_bus_read8(&b,0x2001,&v)==PPCVM_BUS_OK && v==0xa5);
   assert(ppcvm_bus_read32be(&b,0x2000,&w)==PPCVM_BUS_INVALID);
   assert(ppcvm_bus_read8(&b,0x3000,&v)==PPCVM_BUS_UNMAPPED);
-  assert(ppcvm_bus_read32be(&b,14,&w)==PPCVM_BUS_UNMAPPED);
+  assert(ppcvm_bus_read32be(&b,16,&w)==PPCVM_BUS_UNMAPPED);
   assert(ppcvm_bus_map_memory(&b,0xfffffffeu,4,rom,1)==PPCVM_BUS_INVALID);
   return 0;
 }
