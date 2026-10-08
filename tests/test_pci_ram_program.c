@@ -21,7 +21,6 @@ int main(void) {
   ppcvm_cpu cpu;
   device_state state={0};
   uint8_t ram[256]={0};
-  uint32_t instruction=0;
   ppcvm_bus_init(&bus);
   ppcvm_pci_bus_init(&pci);
   ppcvm_pci_device_init(&dev,0x1234,0x5678,0,0,0);
@@ -39,8 +38,7 @@ int main(void) {
   cpu.gpr[4]=0xabcdef12;
   assert(ppcvm_pci_bus_write32(&pci,0,2,0,4,2)==0);
   for(unsigned i=0;i<3;i++) {
-    assert(ppcvm_bus_read32be(&bus,cpu.pc,&instruction)==PPCVM_BUS_OK);
-    assert(ppcvm_cpu_step_bus(&cpu,&bus,instruction)==PPCVM_OK);
+    assert(ppcvm_cpu_step_bus_fetch(&cpu,&bus)==PPCVM_OK);
   }
   assert(cpu.pc==12);
   assert(cpu.gpr[5]==0xabcdef12 && cpu.gpr[6]==0xabcdef12);
