@@ -31,6 +31,35 @@ jobs:
           cmake --build build/host --target test_pci_elf_diagnostic --parallel
       - name: Execute cross-built ELF in PPCVM
         run: build/host/test_pci_elf_diagnostic build/diagnostics/pci_mmio.elf
+      - name: Check ELF diagnostic entry and instruction bytes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          data = Path('build/diagnostics/pci_mmio.elf').read_bytes()
+          assert data[:7] == b'\x7fELF\x01\x02\x01'
+          be16 = lambda n: int.from_bytes(data[n:n+2], 'big')
+          be32 = lambda n: int.from_bytes(data[n:n+4], 'big')
+          assert be16(16) == 2 and be16(18) == 20
+          assert be32(24) == 0x100
+          phoff, phsize, phnum = be32(28), be16(42), be16(44)
+          assert phoff + phsize * phnum <= len(data)
+          expected = [0x90830004, 0x80a30004, 0x60a60000, 0]
+          found = False
+          for i in range(phnum):
+              p = phoff + i * phsize
+              if be32(p) != 1:
+                  continue
+              offset, vaddr, filesz, flags = be32(p+4), be32(p+8), be32(p+16), be32(p+24)
+              if not (flags & 1) or not (vaddr <= 0x100 and 0x110 <= vaddr + filesz):
+                  continue
+              start = offset + 0x100 - vaddr
+              assert start + 16 <= len(data)
+              words = [int.from_bytes(data[start+j:start+j+4], 'big') for j in range(0, 16, 4)]
+              assert words == expected, (words, expected)
+              found = True
+          assert found, 'Missing executable PT_LOAD containing diagnostic entry'
+          print('PowerPC ELF header, entry and instructions verified')
+          PY
       - name: Upload PowerPC diagnostic ELF
         uses: actions/upload-artifact@v4
         with:
