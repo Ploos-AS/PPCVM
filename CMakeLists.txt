@@ -110,3 +110,7 @@ add_test(NAME pegasos2_exceptions COMMAND test_pegasos2_exceptions)
 add_executable(test_mmu tests/test_mmu.c)
 target_link_libraries(test_mmu PRIVATE ppcvm_core)
 add_test(NAME mmu_real_mode COMMAND test_mmu)
+
+add_executable(test_mmu_bat tests/test_mmu_bat.c)
+target_link_libraries(test_mmu_bat PRIVATE ppcvm_core)
+add_test(NAME mmu_bat COMMAND test_mmu_bat)
