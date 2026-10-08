@@ -11,6 +11,15 @@ typedef struct {
   uint32_t ibatu[4], ibatl[4];
   uint32_t dbatu[4], dbatl[4];
 } ppcvm_bat_state;
+/* Segment register state for future hashed page-table translation.
+   The top four bits of an effective address select one of 16 segments.
+   VSID occupies the low 24 bits of each segment register. */
+typedef struct {
+  uint32_t sr[16];
+  uint32_t sdr1;
+} ppcvm_segment_state;
+ppcvm_mmu_result ppcvm_mmu_segment_vsid(const ppcvm_segment_state *state,
+                                         uint32_t ea, uint32_t *vsid);
 /* Supports 128 KiB to 256 MiB BAT blocks, VS/VP and physical block mapping.
    PP=00 denies data and PP=01 is read-only in the current simplified model.
    Full privilege/key semantics, WIMG and page tables are not implemented. */
