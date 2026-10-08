@@ -53,4 +53,8 @@ typedef struct {
 } ppcvm_pci_bar_hit;
 int ppcvm_pci_bus_decode_memory(const ppcvm_pci_bus *bus, uint64_t address,
                                  ppcvm_pci_bar_hit *hit);
+/* Decode configured I/O BARs; PCI Command bit 0 must be enabled.
+   Returns 0 for one match, 1 for no match, -1 for overlap/error. */
+int ppcvm_pci_bus_decode_io(const ppcvm_pci_bus *bus, uint32_t address,
+                             ppcvm_pci_bar_hit *hit);
 #endif
