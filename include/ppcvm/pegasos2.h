@@ -19,6 +19,12 @@ typedef struct {
   uint32_t discovery_reads;
   uint32_t discovery_writes;
 } ppcvm_pegasos2;
+/* Host-side diagnostic firmware information service; no guest trap ABI yet. */
+#define PPCVM_PEGASOS2_FW_QUERY_VERSION UINT32_C(1)
+#define PPCVM_PEGASOS2_FW_QUERY_RAM_BYTES UINT32_C(2)
+#define PPCVM_PEGASOS2_FW_QUERY_BOOT_MAGIC UINT32_C(3)
+ppcvm_result ppcvm_pegasos2_firmware_query(const ppcvm_pegasos2 *machine,
+    uint32_t selector, uint32_t *value);
 /* Map caller-owned, read-only diagnostic/firmware bytes at the high vector prefix. */
 ppcvm_bus_result ppcvm_pegasos2_map_high_rom(ppcvm_pegasos2 *machine, uint8_t *bytes, uint32_t size);
 /* Reset CPU and synthetic device state without clearing RAM or ROM mappings. */
