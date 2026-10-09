@@ -2,6 +2,7 @@
 #define PPCVM_PEGASOS2_H
 #include "ppcvm/bus.h"
 #include "ppcvm/discovery_ii.h"
+#include "ppcvm/irq_latch.h"
 #include "ppcvm/cpu.h"
 #include "ppcvm/memory.h"
 #include "ppcvm/mmu.h"
@@ -17,6 +18,7 @@ typedef struct {
   ppcvm_bat_state bat;
   ppcvm_segment_state segments;
   ppcvm_discovery_ii discovery_ii;
+  ppcvm_irq_latch diagnostic_irq;
   uint32_t discovery_scratch;
   uint32_t discovery_reads;
   uint32_t discovery_writes;
@@ -68,6 +70,9 @@ ppcvm_result ppcvm_pegasos2_load_raw(ppcvm_pegasos2 *machine, uint32_t address, 
 /* Set CPU entry after checking a mapped, aligned RAM instruction address. */
 ppcvm_result ppcvm_pegasos2_enter_ram(ppcvm_pegasos2 *machine, uint32_t entry);
 int ppcvm_pegasos2_init(ppcvm_pegasos2 *machine, size_t ram_size);
+/* Opt-in synthetic interrupt delivery; not Discovery II register behavior. */
+int ppcvm_pegasos2_poll_diagnostic_irq(ppcvm_pegasos2 *machine);
+ppcvm_result ppcvm_pegasos2_step_diagnostic_irq(ppcvm_pegasos2 *machine);
 /* Fetches one big-endian instruction from mapped memory and executes it. */
 ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *machine);
 /* Opt-in synthetic trap: guest executes sc with r3=PVC1 magic and
