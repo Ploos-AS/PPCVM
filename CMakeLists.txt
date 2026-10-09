@@ -493,3 +493,7 @@ add_test(NAME irq_latch COMMAND test_irq_latch)
 add_executable(test_irq_bridge tests/test_irq_bridge.c)
 target_link_libraries(test_irq_bridge PRIVATE ppcvm_core)
 add_test(NAME irq_bridge COMMAND test_irq_bridge)
+
+add_executable(test_pegasos2_diagnostic_irq tests/test_pegasos2_diagnostic_irq.c)
+target_link_libraries(test_pegasos2_diagnostic_irq PRIVATE ppcvm_core)
+add_test(NAME pegasos2_diagnostic_irq COMMAND test_pegasos2_diagnostic_irq)
