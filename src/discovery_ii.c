@@ -18,6 +18,14 @@ static ppcvm_bus_result read_register(void *context,uint32_t offset,uint32_t *va
   ppcvm_discovery_ii *c=(ppcvm_discovery_ii *)context;
   unsigned i=0;int data=0;
   if(!c || !value) return PPCVM_BUS_INVALID;
+  if(c->irq_candidate_enabled && offset==PPCVM_DISCOVERY_II_IRQ_CAUSE_LOW_CANDIDATE) {
+    *value=ppcvm_discovery_ii_swap32(c->irq_asserted_low);
+    return PPCVM_BUS_OK;
+  }
+  if(c->irq_candidate_enabled && offset==PPCVM_DISCOVERY_II_IRQ_CPU0_MASK_LOW_CANDIDATE) {
+    *value=ppcvm_discovery_ii_swap32(c->irq_cpu0_mask_low);
+    return PPCVM_BUS_OK;
+  }
   if(c->pci_config_enabled && config_register(offset,&i,&data)) {
     uint32_t result=UINT32_MAX;
     if(!data) result=c->config_address[i];
@@ -36,6 +44,10 @@ static ppcvm_bus_result write_register(void *context,uint32_t offset,uint32_t va
   ppcvm_discovery_ii *c=(ppcvm_discovery_ii *)context;
   unsigned i=0;int data=0;
   if(!c) return PPCVM_BUS_INVALID;
+  if(c->irq_candidate_enabled && offset==PPCVM_DISCOVERY_II_IRQ_CPU0_MASK_LOW_CANDIDATE) {
+    c->irq_cpu0_mask_low=ppcvm_discovery_ii_swap32(value);
+    return PPCVM_BUS_OK;
+  }
   if(c->pci_config_enabled && config_register(offset,&i,&data)) {
     uint32_t word=ppcvm_discovery_ii_swap32(value);
     if(!data) c->config_address[i]=word;
@@ -56,11 +68,25 @@ void ppcvm_discovery_ii_enable_pci_config(ppcvm_discovery_ii *c,
   c->config_address[0]=0;c->config_address[1]=0;
   c->pci_config_enabled=1;
 }
+void ppcvm_discovery_ii_enable_irq_candidate(ppcvm_discovery_ii *c) {
+  if(c) c->irq_candidate_enabled=1;
+}
+void ppcvm_discovery_ii_assert_irq_low(ppcvm_discovery_ii *c,uint32_t bits) {
+  if(c) c->irq_asserted_low|=bits;
+}
+void ppcvm_discovery_ii_clear_irq_low(ppcvm_discovery_ii *c,uint32_t bits) {
+  if(c) c->irq_asserted_low&=~bits;
+}
+uint32_t ppcvm_discovery_ii_active_irq_low(const ppcvm_discovery_ii *c) {
+  return c && c->irq_candidate_enabled ? c->irq_asserted_low & c->irq_cpu0_mask_low : 0;
+}
 void ppcvm_discovery_ii_init(ppcvm_discovery_ii *controller) {
   if(controller) memset(controller,0,sizeof(*controller));
 }
 void ppcvm_discovery_ii_reset(ppcvm_discovery_ii *controller) {
   if(!controller) return;
+  controller->irq_asserted_low=0;
+  controller->irq_cpu0_mask_low=0;
   controller->config_address[0]=0;
   controller->config_address[1]=0;
   controller->reset_count++;
