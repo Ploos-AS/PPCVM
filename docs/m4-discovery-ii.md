@@ -100,3 +100,29 @@ Current test coverage includes:
 **Release gate:** Do not claim Pegasos II firmware, MorphOS, AmigaOS 4,
 AROS PPC, Linux or BSD boot support until a reproducible real firmware or
 operating-system trace demonstrates it. Diagnostic ELF success is insufficient.
+
+## M4.18 implementation: explicit CPU-to-PCI translation fixture
+
+`ppcvm_pci_map_translated_window` maps a CPU-side aperture to a separately
+configured 64-bit PCI address. It is **disabled by default** and still requires
+PCI Command Memory Space Enable and a matching BAR/callback on the PCI bus.
+The translation is `pci_base + (cpu_address - cpu_base)`; the mapping rejects
+invalid alignment, zero-sized ranges and CPU/PCI address overflow. A CTest
+regression uses CPU `0xa0000000` to reach PCI BAR0 `0x90000000`, verifies
+decode gating, read/write callbacks and disable behavior.
+
+This is a deliberately generic, opt-in fixture. It does **not** implement
+MV64361 outbound window registers, window-enable bitfields, board defaults
+or hardware reset behavior. It should not be used as evidence of firmware
+boot compatibility.
+
+## M4.19 planning: interrupt architecture gate
+
+Before implementing guest-visible IRQ registers, verify the MV64361
+interrupt-cause/mask register layout, per-source routing, CPU interrupt
+polarity and Pegasos II board wiring from primary sources. A useful
+intermediate test fixture may track a pending IRQ and deliver a PowerPC
+external exception when MSR[EE] is set, but such a fixture must be clearly
+named synthetic and must not be exposed as a physical Discovery II
+interrupt-controller model. Cover pending-vs-masked, acknowledge, reset,
+exception SRR0/SRR1 and disabled MSR[EE] in deterministic tests.
