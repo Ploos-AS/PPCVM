@@ -41,6 +41,15 @@ int main(void) {
   ppcvm_irq_latch_enable(&m.diagnostic_irq,2u);
   assert(ppcvm_pegasos2_step_diagnostic_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL && m.cpu.srr0==0x1008u);
+  /* Exception prefix selects the high-vector mapping. Polling must not
+     fetch or execute an instruction when it accepts the interrupt. */
+  ppcvm_irq_latch_clear(&m.diagnostic_irq,2u);
+  m.cpu.pc=0x1000u;
+  m.cpu.msr=UINT32_C(0x8040);
+  ppcvm_irq_latch_set(&m.diagnostic_irq,1u);
+  assert(ppcvm_pegasos2_step_diagnostic_irq(&m)==PPCVM_OK);
+  assert(m.cpu.pc==UINT32_C(0xfff00500));
+  assert(m.cpu.srr0==0x1000u && m.cpu.srr1==UINT32_C(0x8040));
   ppcvm_pegasos2_reset(&m);
   assert(ppcvm_irq_latch_active(&m.diagnostic_irq)==0);
   assert(m.diagnostic_irq.asserted==0 && m.diagnostic_irq.enabled==0);
