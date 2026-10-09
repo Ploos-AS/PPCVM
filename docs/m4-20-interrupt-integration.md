@@ -1,13 +1,13 @@
 # M4.20 — Pegasos II external interrupt integration
 
-Status: in progress. Synthetic board IRQ delivery and regression coverage pass CI; documented Discovery II IRQ registers and a guest ELF fixture are not yet implemented.
+Status: in progress. Synthetic board IRQ delivery and the freestanding PPC32 ELF guest PASS path are CI-verified. The candidate Discovery II IRQ register map and device routing are not yet hardware-validated.
 
 ## Scope
 Connect the CPU external interrupt acceptance path introduced in M4.19 to a deterministic Pegasos II board-level interrupt source and the Discovery II interrupt controller. Keep the initial test independent of proprietary firmware and guest OS images.
 
 ## Acceptance criteria
 
-1. A device raises an interrupt through a documented Discovery II pending/mask path; the CPU receives the external interrupt only when both controller and MSR[EE] permit it.
+1. A device raises an interrupt through a hardware-validated Discovery II pending/mask path; the CPU receives the external interrupt only when both controller and MSR[EE] permit it.
 2. A masked interrupt remains pending without triggering exception entry. Unmasking delivers it exactly once according to the modeled level/edge semantics.
 3. Exception entry saves the correct SRR0/SRR1 and transfers to the proper external interrupt vector, including high-vector selection where supported.
 4. An exception handler acknowledges the interrupt, executes `rfi`, and resumes the interrupted guest instruction stream without duplicate delivery.
@@ -40,11 +40,19 @@ M4.20 is complete only when all acceptance tests pass in CI and the evidence is 
 - [CI run 37922786018](https://github.com/Ploos-AS/PPCVM/actions/runs/37922786018): successful after level-retrigger and independent-source regression additions.
 - Synthetic `irq_latch.h` and `irq_bridge.h` remain diagnostic primitives, not a verified MV64361 register map.
 - `ppcvm_pegasos2_step_diagnostic_irq` is opt-in. The ordinary Pegasos II step path is unchanged.
-- Outstanding gates: validated Discovery II interrupt register offsets and semantics; device-to-controller routing; guest ELF; complete CI acceptance evidence.
+- Outstanding gates: validated Discovery II interrupt register offsets and semantics; device-to-controller routing; hardware-validated register semantics; device routing; full multi-source and negative-case acceptance evidence.
 
-## Guest instruction regressions (pending CI verification)
+## Guest instruction regressions (CI verified)
 
 - `pegasos2_discovery_guest_mmio`: PPC `stw` and `lwz` access the provisional CPU0 mask register; the guest resumes after external exception and `rfi`.
 - `pegasos2_discovery_guest_handler`: the guest handler executes `stw` at vector 0x500 to mask an asserted source, then `rfi`; the pending level remains asserted but masked, preventing immediate retrigger.
 - These tests embed PPC opcodes directly in test RAM; they are **not** PPC32 ELF guest fixtures, do not demonstrate guest-controlled source deassertion, and do not establish MV64361 hardware register accuracy.
 - The CI runs for these tests were still queued when this section was added. Do not mark M4.20 complete based on earlier green runs.
+
+## PPC32 guest ELF integration evidence (2026-10-09)
+
+- [CI run 37978284854](https://github.com/Ploos-AS/PPCVM/actions/runs/37978284854) **success** at commit `faba6f8`: PowerPC cross-binutils assemble and link `tests/fixtures/discovery_irq_guest.S`, verify ELF header and entry, then run `test_discovery_irq_elf` against the produced ELF.
+- The guest enables provisional CPU0 mask bit 0, the host asserts source 0, the guest masks it in the external exception handler, sets `r6=0x50415353` (`PASS`), and executes `rfi`. The harness verifies the marker and that the source remains asserted but masked.
+- The fixture writes `0x01000000` to represent mask bit zero under the **current bus byte-order contract**. This is an emulator-specific accommodation, not a validated MV64361 guest register convention.
+- The prior [CI run 37952557308](https://github.com/Ploos-AS/PPCVM/actions/runs/37952557308) failed because the guest wrote `1` and the controller mask remained zero; commit `faba6f8` corrected the fixture.
+- Remaining before M4.20 exit: validate register offsets, byte ordering, source acknowledgement, realistic device routing, multi-source arbitration and negative paths. Passing the ELF fixture does **not** establish guest OS boot capability.
