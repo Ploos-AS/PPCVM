@@ -29,6 +29,11 @@ int main(void) {
   assert(ppcvm_bus_write32be(&m.bus,base+PPCVM_DISCOVERY_II_IRQ_CPU0_MASK_LOW_CANDIDATE,ppcvm_discovery_ii_swap32(2u))==PPCVM_BUS_OK);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL && m.cpu.srr0==0x1008u);
+  /* A level interrupt must retrigger after rfi until its source deasserts. */
+  assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.pc==0x1008u);
+  assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL && m.cpu.srr0==0x1008u);
   assert(ppcvm_bus_write32be(&m.bus,base+PPCVM_DISCOVERY_II_IRQ_CAUSE_LOW_CANDIDATE,0)==PPCVM_BUS_UNMAPPED);
   ppcvm_discovery_ii_clear_irq_low(&m.discovery_ii,2u);
   ppcvm_pegasos2_reset(&m);
