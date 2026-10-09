@@ -1,4 +1,5 @@
 #include "ppcvm/pegasos2.h"
+#include "ppcvm/pci_irq_bridge.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -15,9 +16,16 @@ int main(int argc,char **argv) {
   if(fread(elf,1,(size_t)len,fp)!=(size_t)len) {free(elf);fclose(fp);return 7;}
   fclose(fp);
   ppcvm_pegasos2 m;
+  ppcvm_pci_bus pci;
+  ppcvm_pci_device device;
+  ppcvm_pci_irq_bridge irq;
   assert(ppcvm_pegasos2_init(&m,65536u)==0);
   assert(ppcvm_pegasos2_map_discovery_ii(&m,UINT32_C(0x20000),0x100u)==PPCVM_BUS_OK);
   ppcvm_discovery_ii_enable_irq_candidate(&m.discovery_ii);
+  ppcvm_pci_bus_init(&pci);
+  ppcvm_pci_device_init(&device,0x1234,0x5678,2,0,1);
+  assert(ppcvm_pci_bus_add(&pci,0,2,0,&device)==0);
+  assert(ppcvm_pci_irq_bridge_init(&irq,&pci,&m.discovery_ii,0,2,0,1,0)==0);
   assert(ppcvm_pegasos2_boot_elf32(&m,elf,(size_t)len)==PPCVM_OK);
   free(elf);
   assert(m.cpu.pc==0x1000u);
@@ -26,7 +34,8 @@ int main(int argc,char **argv) {
   for(unsigned i=0;i<3;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0);
   assert(m.discovery_ii.irq_cpu0_mask_low==1u);
-  ppcvm_discovery_ii_assert_irq_low(&m.discovery_ii,1u);
+  /* Synthetic PCI INTA assertion is now the sole IRQ source. */
+  assert(ppcvm_pci_irq_bridge_set_level(&irq,1)==0);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
   for(unsigned i=0;i<5;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
@@ -34,6 +43,8 @@ int main(int argc,char **argv) {
   assert(m.discovery_ii.irq_cpu0_mask_low==0);
   assert(m.discovery_ii.irq_asserted_low==1u);
   assert(m.cpu.pc!=PPCVM_VECTOR_EXTERNAL);
+  assert(ppcvm_pci_irq_bridge_set_level(&irq,0)==0);
+  assert(m.discovery_ii.irq_asserted_low==0u);
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
