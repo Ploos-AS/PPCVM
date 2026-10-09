@@ -18,8 +18,8 @@ int main(int argc,char **argv) {
   fclose(fp);
   ppcvm_pegasos2 m;
   ppcvm_pci_bus pci;
-  ppcvm_pci_device device;
-  ppcvm_pci_irq_bridge irq;
+  ppcvm_pci_device device,device2;
+  ppcvm_pci_irq_bridge irq,irq2;
   ppcvm_pci_irq_shared shared;
   assert(ppcvm_pegasos2_init(&m,65536u)==0);
   assert(ppcvm_pegasos2_map_discovery_ii(&m,UINT32_C(0x20000),0x100u)==PPCVM_BUS_OK);
@@ -27,7 +27,11 @@ int main(int argc,char **argv) {
   ppcvm_pci_bus_init(&pci);
   ppcvm_pci_device_init(&device,0x1234,0x5678,2,0,1);
   assert(ppcvm_pci_bus_add(&pci,0,2,0,&device)==0);
+  ppcvm_pci_device_init(&device2,0x1234,0x5679,2,0,1);
+  assert(ppcvm_pci_bus_add(&pci,0,3,0,&device2)==0);
   assert(ppcvm_pci_irq_bridge_init(&irq,&pci,&m.discovery_ii,0,2,0,1,0)==0);
+  assert(ppcvm_pci_irq_bridge_init(&irq2,&pci,&m.discovery_ii,0,3,0,1,0)==0);
+  assert(irq.device==2 && irq2.device==3 && irq.source==irq2.source);
   assert(ppcvm_pci_irq_shared_init(&shared,&m.discovery_ii,0)==0);
   assert(ppcvm_pci_irq_shared_register(&shared,0)==0);
   assert(ppcvm_pci_irq_shared_register(&shared,1)==0);
@@ -39,7 +43,7 @@ int main(int argc,char **argv) {
   for(unsigned i=0;i<3;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0);
   assert(m.discovery_ii.irq_cpu0_mask_low==1u);
-  /* Two synthetic PCI INTx owners share one wired-OR controller source. */
+  /* Two distinct registered PCI device identities share a synthetic source. */
   assert(ppcvm_pci_irq_shared_set_level(&shared,0,1)==0);
   assert(ppcvm_pci_irq_shared_set_level(&shared,1,1)==0);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
