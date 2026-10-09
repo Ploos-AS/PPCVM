@@ -54,7 +54,10 @@ int main(int argc,char **argv) {
   assert(state.writes==1u && state.reads==1u && state.value==0x13579bdfu);
   uint32_t command=0;
   assert(ppcvm_pci_bus_read32(&pci,0,2,0,4,&command)==0);
-  assert((command&2u)!=0);
+  assert((command&2u)==0);
+  uint32_t inaccessible=0;
+  assert(ppcvm_bus_read32be(&m.bus,0x90000004u,&inaccessible)==PPCVM_BUS_UNMAPPED);
+  assert(state.writes==1u && state.reads==1u);
   assert(m.discovery_ii.config_address[0]==0x80001004u);
   uint32_t bar=0;
   assert(ppcvm_pci_bus_read32(&pci,0,2,0,0x10,&bar)==0);
