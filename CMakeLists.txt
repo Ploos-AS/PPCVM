@@ -477,3 +477,7 @@ target_link_libraries(test_discovery_ii_guest PRIVATE ppcvm_core)
 if(DEFINED PPCVM_DISCOVERY_II_GUEST_ELF AND NOT "${PPCVM_DISCOVERY_II_GUEST_ELF}" STREQUAL "")
   add_test(NAME discovery_ii_guest COMMAND test_discovery_ii_guest "${PPCVM_DISCOVERY_II_GUEST_ELF}")
 endif()
+
+add_executable(test_pci_translated_window tests/test_pci_translated_window.c)
+target_link_libraries(test_pci_translated_window PRIVATE ppcvm_core)
+add_test(NAME pci_translated_window COMMAND test_pci_translated_window)
