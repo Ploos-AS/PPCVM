@@ -104,6 +104,12 @@ _start:
     xor 8,5,12
     cmpwi 8,0
     bne failed
+    /* Disable memory decoding after the successful BAR access. */
+    li 10,0
+    stw 10,0xcfc(3)
+    lwz 5,0xcfc(3)
+    cmpwi 5,0
+    bne failed
     li 6,1
     .long 0
 restore_failed:
