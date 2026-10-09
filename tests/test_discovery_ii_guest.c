@@ -31,7 +31,7 @@ int main(int argc,char **argv) {
   assert(ppcvm_pegasos2_boot_elf32(&m,elf,(size_t)length)==PPCVM_OK);
   free(elf);
   m.cpu.gpr[3]=0x80000000u;
-  ppcvm_run_report report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,64);
+  ppcvm_run_report report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,256);
   assert(report.reason==PPCVM_RUN_HALT);
   assert(m.cpu.gpr[6]==1u);
   assert(m.discovery_ii.config_address[0]==0x80001010u);
@@ -42,7 +42,7 @@ int main(int argc,char **argv) {
   pci.slots[0].config.config[0]=0x35u;
   m.cpu.pc=0x100u;
   m.cpu.gpr[6]=0;
-  report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,64);
+  report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,256);
   assert(report.reason==PPCVM_RUN_HALT);
   assert(m.cpu.gpr[6]==0u);
   ppcvm_pegasos2_destroy(&m);
