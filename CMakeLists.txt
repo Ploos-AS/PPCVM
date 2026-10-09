@@ -528,3 +528,7 @@ add_test(NAME pci_irq_bridge COMMAND test_pci_irq_bridge)
 add_executable(test_pci_irq_shared tests/test_pci_irq_shared.c)
 target_link_libraries(test_pci_irq_shared PRIVATE ppcvm_core)
 add_test(NAME pci_irq_shared COMMAND test_pci_irq_shared)
+
+add_executable(test_pci_irq_router tests/test_pci_irq_router.c)
+target_link_libraries(test_pci_irq_router PRIVATE ppcvm_core)
+add_test(NAME pci_irq_router COMMAND test_pci_irq_router)
