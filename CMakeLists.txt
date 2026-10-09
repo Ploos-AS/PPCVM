@@ -481,3 +481,7 @@ endif()
 add_executable(test_pci_translated_window tests/test_pci_translated_window.c)
 target_link_libraries(test_pci_translated_window PRIVATE ppcvm_core)
 add_test(NAME pci_translated_window COMMAND test_pci_translated_window)
+
+add_executable(test_cpu_external_irq tests/test_cpu_external_irq.c)
+target_link_libraries(test_cpu_external_irq PRIVATE ppcvm_core)
+add_test(NAME cpu_external_irq COMMAND test_cpu_external_irq)
