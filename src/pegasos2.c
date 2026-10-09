@@ -1,4 +1,5 @@
 #include "ppcvm/pegasos2.h"
+#include "ppcvm/irq_bridge.h"
 #include <string.h>
 ppcvm_result ppcvm_pegasos2_firmware_query(const ppcvm_pegasos2 *m,
     uint32_t selector, uint32_t *value) {
@@ -64,6 +65,7 @@ void ppcvm_pegasos2_reset(ppcvm_pegasos2 *m) {
   if (!m) return;
   ppcvm_cpu_reset(&m->cpu);
   ppcvm_discovery_ii_reset(&m->discovery_ii);
+  ppcvm_irq_latch_reset(&m->diagnostic_irq);
   m->discovery_scratch=0;
   m->discovery_reads=0;
   m->discovery_writes=0;
@@ -501,4 +503,17 @@ ppcvm_result ppcvm_pegasos2_run(ppcvm_pegasos2 *m, size_t limit, size_t *execute
     if (executed) *executed=i+1;
   }
   return PPCVM_OK;
+}
+
+/* Explicit diagnostic stepping; leaves the ordinary step API unchanged. */
+int ppcvm_pegasos2_poll_diagnostic_irq(ppcvm_pegasos2 *m) {
+  if (!m) return -1;
+  return ppcvm_irq_bridge_poll(&m->cpu,&m->diagnostic_irq);
+}
+ppcvm_result ppcvm_pegasos2_step_diagnostic_irq(ppcvm_pegasos2 *m) {
+  if (!m) return PPCVM_MEMORY_FAULT;
+  int accepted=ppcvm_pegasos2_poll_diagnostic_irq(m);
+  if (accepted<0) return PPCVM_MEMORY_FAULT;
+  if (accepted>0) return PPCVM_OK;
+  return ppcvm_pegasos2_step(m);
 }
