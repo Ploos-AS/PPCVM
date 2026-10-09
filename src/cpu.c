@@ -19,6 +19,12 @@ void ppcvm_cpu_enter_exception(ppcvm_cpu *cpu, uint32_t vector, uint32_t resume_
   cpu->msr &= ~UINT32_C(0x0000c030); /* PR, EE, IR, DR */
   cpu->pc=((cpu->srr1 & UINT32_C(0x40)) ? UINT32_C(0xfff00000) : 0u) | vector;
 }
+int ppcvm_cpu_accept_external_irq(ppcvm_cpu *cpu) {
+  if(!cpu) return -1;
+  if(!(cpu->msr & UINT32_C(0x8000))) return 0;
+  ppcvm_cpu_enter_exception(cpu,PPCVM_VECTOR_EXTERNAL,cpu->pc);
+  return 1;
+}
 void ppcvm_cpu_reset(ppcvm_cpu *cpu) { memset(cpu, 0, sizeof(*cpu)); }
 ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_t insn) {
   uint32_t opcode = insn >> 26;
