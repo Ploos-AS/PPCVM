@@ -78,4 +78,16 @@ typedef struct {
 ppcvm_bus_result ppcvm_pci_map_mmio_aperture(ppcvm_bus *cpu_bus,
     ppcvm_pci_mmio_aperture *aperture, ppcvm_pci_bus *pci,
     uint32_t base, uint32_t size);
+/* Experimental explicit CPU-to-PCI translated memory window.
+ * Not a model of MV64361 window programming registers. */
+typedef struct {
+  ppcvm_pci_bus *pci;
+  uint64_t pci_base;
+  uint8_t enabled;
+} ppcvm_pci_translated_window;
+ppcvm_bus_result ppcvm_pci_map_translated_window(ppcvm_bus *cpu_bus,
+    ppcvm_pci_translated_window *window, ppcvm_pci_bus *pci,
+    uint32_t cpu_base, uint32_t size, uint64_t pci_base);
+void ppcvm_pci_translated_window_enable(ppcvm_pci_translated_window *window,
+    int enabled);
 #endif
