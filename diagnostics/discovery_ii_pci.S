@@ -88,6 +88,22 @@ _start:
     lis 10,0x0000
     ori 10,10,0x0090
     stw 10,0xcfc(3)
+    /* Enable PCI Memory Decode: command register at config offset 4. */
+    lis 9,0x0410
+    ori 9,9,0x0080
+    stw 9,0xcf8(3)
+    lis 10,0x0200
+    stw 10,0xcfc(3)
+    lwz 5,0xcfc(3)
+    xor 8,5,10
+    cmpwi 8,0
+    bne failed
+    /* BAR0 aperture is supplied in r11; test payload in r12. */
+    stw 12,4(11)
+    lwz 5,4(11)
+    xor 8,5,12
+    cmpwi 8,0
+    bne failed
     li 6,1
     .long 0
 restore_failed:
