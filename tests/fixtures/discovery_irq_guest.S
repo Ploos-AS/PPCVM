@@ -7,7 +7,7 @@
     .globl _start
 _start:
     lis 3,2                /* r3 = 0x20000 controller base */
-    li 4,1
+    lis 4,0x100            /* bus-visible 0x01000000 maps to mask bit 0 */
     stw 4,0x14(3)         /* enable CPU0 IRQ source 0 (candidate) */
 1:  b 1b                   /* wait for external exception */
 
