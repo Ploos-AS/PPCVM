@@ -489,3 +489,7 @@ add_test(NAME cpu_external_irq COMMAND test_cpu_external_irq)
 add_executable(test_irq_latch tests/test_irq_latch.c)
 target_link_libraries(test_irq_latch PRIVATE ppcvm_core)
 add_test(NAME irq_latch COMMAND test_irq_latch)
+
+add_executable(test_irq_bridge tests/test_irq_bridge.c)
+target_link_libraries(test_irq_bridge PRIVATE ppcvm_core)
+add_test(NAME irq_bridge COMMAND test_irq_bridge)
