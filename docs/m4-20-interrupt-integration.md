@@ -41,3 +41,10 @@ M4.20 is complete only when all acceptance tests pass in CI and the evidence is 
 - Synthetic `irq_latch.h` and `irq_bridge.h` remain diagnostic primitives, not a verified MV64361 register map.
 - `ppcvm_pegasos2_step_diagnostic_irq` is opt-in. The ordinary Pegasos II step path is unchanged.
 - Outstanding gates: validated Discovery II interrupt register offsets and semantics; device-to-controller routing; guest ELF; complete CI acceptance evidence.
+
+## Guest instruction regressions (pending CI verification)
+
+- `pegasos2_discovery_guest_mmio`: PPC `stw` and `lwz` access the provisional CPU0 mask register; the guest resumes after external exception and `rfi`.
+- `pegasos2_discovery_guest_handler`: the guest handler executes `stw` at vector 0x500 to mask an asserted source, then `rfi`; the pending level remains asserted but masked, preventing immediate retrigger.
+- These tests embed PPC opcodes directly in test RAM; they are **not** PPC32 ELF guest fixtures, do not demonstrate guest-controlled source deassertion, and do not establish MV64361 hardware register accuracy.
+- The CI runs for these tests were still queued when this section was added. Do not mark M4.20 complete based on earlier green runs.
