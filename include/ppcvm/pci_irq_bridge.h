@@ -15,6 +15,8 @@ typedef struct {
 int ppcvm_pci_irq_bridge_init(ppcvm_pci_irq_bridge *bridge,
     ppcvm_pci_bus *pci,ppcvm_discovery_ii *controller,
     uint8_t bus,uint8_t device,uint8_t function,uint8_t pin,uint8_t source);
-/* Level assertion/deassertion from an emulated PCI device. */
+/* Level assertion/deassertion from an emulated PCI device.
+ * For shared sources, use a shared line aggregator instead of calling this
+ * directly on multiple bridges: a single bridge cannot track other owners. */
 int ppcvm_pci_irq_bridge_set_level(ppcvm_pci_irq_bridge *bridge,int asserted);
 #endif
