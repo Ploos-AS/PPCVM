@@ -3,11 +3,11 @@
 #include "ppcvm/bus.h"
 #include "ppcvm/pci.h"
 #include <stdint.h>
-/* M4.1 controller skeleton: deliberately NO hardware register offsets yet.
- * A mapped region rejects accesses until verified register semantics exist.
- * This must not be confused with the synthetic PCI config bridge. */
-/* Candidate MV643xx PCI config offsets from historical Linux headers.
- * These are NOT enabled as hardware registers until MV64361 is validated. */
+/* Experimental Discovery II controller. PCI config registers are opt-in;
+ * all other unsupported offsets fail closed. This is not a complete
+ * hardware-accurate MV64361 or Pegasos II memory map. */
+/* Candidate MV643xx offsets from historical Linux headers and board examples.
+ * Exposed only after explicit opt-in; MV64361 reset/mask semantics unverified. */
 #define PPCVM_DISCOVERY_II_PCI0_CONFIG_ADDRESS_CANDIDATE UINT32_C(0x0cf8)
 #define PPCVM_DISCOVERY_II_PCI0_CONFIG_DATA_CANDIDATE UINT32_C(0x0cfc)
 #define PPCVM_DISCOVERY_II_PCI1_CONFIG_ADDRESS_CANDIDATE UINT32_C(0x0c78)
