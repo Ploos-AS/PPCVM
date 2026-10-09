@@ -53,6 +53,12 @@ jobs:
         run: |
           powerpc-linux-gnu-as -mppc -o build/diagnostics/discovery_ii_pci.o diagnostics/discovery_ii_pci.S
           powerpc-linux-gnu-ld -m elf32ppclinux -T diagnostics/pci_mmio.ld -o build/diagnostics/discovery_ii_pci.elf build/diagnostics/discovery_ii_pci.o
+      - name: Assemble and link Discovery II IRQ guest fixture
+        run: |
+          powerpc-linux-gnu-as -mppc -o build/diagnostics/discovery_irq_guest.o tests/fixtures/discovery_irq_guest.S
+          powerpc-linux-gnu-ld -m elf32ppclinux -T tests/fixtures/discovery_irq_guest.ld -o build/diagnostics/discovery_irq_guest.elf build/diagnostics/discovery_irq_guest.o
+          powerpc-linux-gnu-readelf -h -l -s build/diagnostics/discovery_irq_guest.elf
+          python3 -c 'from pathlib import Path; d=Path("build/diagnostics/discovery_irq_guest.elf").read_bytes(); assert d[:7]==bytes.fromhex("7f454c46010201"); assert int.from_bytes(d[18:20],"big")==20; assert int.from_bytes(d[24:28],"big")==0x1000'
       - name: Configure and build PPCVM integration test
         run: |
           cmake -S . -B build/host -DCMAKE_BUILD_TYPE=Debug -DPPCVM_PCI_SELFCHECK_ELF=${{ github.workspace }}/build/diagnostics/pci_selfcheck.elf -DPPCVM_PCI_CONFIG_GUEST_ELF=${{ github.workspace }}/build/diagnostics/pci_config_bridge.elf -DPPCVM_PCI_SCAN_GUEST_ELF=${{ github.workspace }}/build/diagnostics/pci_config_scan.elf -DPPCVM_PCI_BAR_PROBE_ELF=${{ github.workspace }}/build/diagnostics/pci_bar_probe.elf -DPPCVM_PCI_ENABLE_MMIO_ELF=${{ github.workspace }}/build/diagnostics/pci_enable_mmio.elf -DPPCVM_PCI_DECODE_TOGGLE_ELF=${{ github.workspace }}/build/diagnostics/pci_decode_toggle.elf -DPPCVM_DISCOVERY_II_GUEST_ELF=${{ github.workspace }}/build/diagnostics/discovery_ii_pci.elf
