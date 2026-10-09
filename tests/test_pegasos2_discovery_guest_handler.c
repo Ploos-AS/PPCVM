@@ -28,6 +28,18 @@ int main(void) {
   assert(m.cpu.pc==0x1000u);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==0x1004u);
+  /* The source is still pending: unmasking must deliver it again. */
+  assert(m.discovery_ii.irq_asserted_low==1u);
+  assert(ppcvm_bus_write32be(&m.bus,base+PPCVM_DISCOVERY_II_IRQ_CPU0_MASK_LOW_CANDIDATE,ppcvm_discovery_ii_swap32(1u))==PPCVM_BUS_OK);
+  assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL && m.cpu.srr0==0x1004u);
+  assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL+4u);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0);
+  assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.pc==0x1004u);
+  ppcvm_discovery_ii_clear_irq_low(&m.discovery_ii,1u);
+  assert(m.discovery_ii.irq_asserted_low==0);
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
