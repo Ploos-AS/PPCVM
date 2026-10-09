@@ -42,9 +42,20 @@ int main(void) {
   assert(ppcvm_bus_write32be(&bus,0x80000cf8u,0x00100080u)==PPCVM_BUS_OK);
   assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
   assert(value==0x34127856u);
+  /* Reset must clear both address latches without detaching the PCI buses. */
+  assert(ppcvm_bus_write32be(&bus,0x80000c78u,0x00100080u)==PPCVM_BUS_OK);
   ppcvm_discovery_ii_reset(&c);
   assert(c.config_address[0]==0 && c.config_address[1]==0);
   assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
   assert(value==UINT32_MAX);
+  assert(c.pci_config_enabled==1u && c.pci[0]==&p0 && c.pci[1]==&p1);
+  assert(ppcvm_bus_read32be(&bus,0x80000c7cu,&value)==PPCVM_BUS_OK);
+  assert(value==UINT32_MAX);
+  assert(ppcvm_bus_write32be(&bus,0x80000cf8u,0x00100080u)==PPCVM_BUS_OK);
+  assert(ppcvm_bus_read32be(&bus,0x80000cfcu,&value)==PPCVM_BUS_OK);
+  assert(value==0x34127856u);
+  assert(ppcvm_bus_write32be(&bus,0x80000c78u,0x00100080u)==PPCVM_BUS_OK);
+  assert(ppcvm_bus_read32be(&bus,0x80000c7cu,&value)==PPCVM_BUS_OK);
+  assert(value==0xcdab01efu);
   return 0;
 }
