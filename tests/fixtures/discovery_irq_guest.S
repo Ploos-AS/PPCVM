@@ -1,0 +1,21 @@
+/* Freely redistributable PPC32 big-endian bare-metal diagnostic guest.
+ * Link with discovery_irq_guest.ld; CPU starts at _start (0x1000).
+ * Host must map the candidate Discovery II aperture at 0x20000 and
+ * assert IRQ source 0 after _start enables its controller mask.
+ * This is not a hardware-accurate Pegasos II firmware image. */
+    .section .text.start,"ax",@progbits
+    .globl _start
+_start:
+    lis 3,2                /* r3 = 0x20000 controller base */
+    li 4,1
+    stw 4,0x14(3)         /* enable CPU0 IRQ source 0 (candidate) */
+1:  b 1b                   /* wait for external exception */
+
+    .section .text.irq,"ax",@progbits
+    .globl irq_handler
+irq_handler:
+    li 4,0
+    stw 4,0x14(3)         /* mask asserted source, not acknowledge */
+    lis 6,0x5041
+    ori 6,6,0x5353       /* PASS marker in r6 */
+    rfi
