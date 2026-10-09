@@ -505,3 +505,7 @@ add_test(NAME discovery_ii_irq_candidate COMMAND test_discovery_ii_irq_candidate
 add_executable(test_pegasos2_discovery_irq tests/test_pegasos2_discovery_irq.c)
 target_link_libraries(test_pegasos2_discovery_irq PRIVATE ppcvm_core)
 add_test(NAME pegasos2_discovery_irq COMMAND test_pegasos2_discovery_irq)
+
+add_executable(test_pegasos2_discovery_irq_mmio tests/test_pegasos2_discovery_irq_mmio.c)
+target_link_libraries(test_pegasos2_discovery_irq_mmio PRIVATE ppcvm_core)
+add_test(NAME pegasos2_discovery_irq_mmio COMMAND test_pegasos2_discovery_irq_mmio)
