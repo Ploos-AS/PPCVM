@@ -497,3 +497,7 @@ add_test(NAME irq_bridge COMMAND test_irq_bridge)
 add_executable(test_pegasos2_diagnostic_irq tests/test_pegasos2_diagnostic_irq.c)
 target_link_libraries(test_pegasos2_diagnostic_irq PRIVATE ppcvm_core)
 add_test(NAME pegasos2_diagnostic_irq COMMAND test_pegasos2_diagnostic_irq)
+
+add_executable(test_discovery_ii_irq_candidate tests/test_discovery_ii_irq_candidate.c)
+target_link_libraries(test_discovery_ii_irq_candidate PRIVATE ppcvm_core)
+add_test(NAME discovery_ii_irq_candidate COMMAND test_discovery_ii_irq_candidate)
