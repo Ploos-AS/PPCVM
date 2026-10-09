@@ -517,3 +517,6 @@ add_test(NAME pegasos2_discovery_guest_mmio COMMAND test_pegasos2_discovery_gues
 add_executable(test_pegasos2_discovery_guest_handler tests/test_pegasos2_discovery_guest_handler.c)
 target_link_libraries(test_pegasos2_discovery_guest_handler PRIVATE ppcvm_core)
 add_test(NAME pegasos2_discovery_guest_handler COMMAND test_pegasos2_discovery_guest_handler)
+
+add_executable(test_discovery_irq_elf tests/test_discovery_irq_elf.c)
+target_link_libraries(test_discovery_irq_elf PRIVATE ppcvm_core)
