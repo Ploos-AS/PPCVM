@@ -4,6 +4,17 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+typedef struct { uint32_t value; unsigned reads,writes; } mmio_state;
+static int mmio_read(void *ctx,uint8_t bar,uint64_t offset,uint32_t *value) {
+  mmio_state *s=(mmio_state *)ctx;
+  if(bar!=0 || offset!=4 || !value) return -1;
+  s->reads++;*value=s->value;return 0;
+}
+static int mmio_write(void *ctx,uint8_t bar,uint64_t offset,uint32_t value) {
+  mmio_state *s=(mmio_state *)ctx;
+  if(bar!=0 || offset!=4) return -1;
+  s->writes++;s->value=value;return 0;
+}
 int main(int argc,char **argv) {
   if(argc!=2) return 2;
   FILE *fp=fopen(argv[1],"rb");
@@ -18,23 +29,33 @@ int main(int argc,char **argv) {
   ppcvm_pegasos2 m;
   ppcvm_pci_bus pci,pci1;
   ppcvm_pci_device device,device1;
+  ppcvm_pci_mmio_aperture aperture;
+  mmio_state state={0};
   assert(ppcvm_pegasos2_init(&m,4096)==PPCVM_OK);
   ppcvm_pci_bus_init(&pci);
   ppcvm_pci_bus_init(&pci1);
   ppcvm_pci_device_init(&device,0x1234,0x5678,2,0,1);
   assert(ppcvm_pci_set_mem_bar32(&device,0,4096,0x90000000u)==0);
   assert(ppcvm_pci_bus_add(&pci,0,2,0,&device)==0);
+  assert(ppcvm_pci_bus_set_mmio(&pci,0,2,0,&state,mmio_read,mmio_write)==0);
   ppcvm_pci_device_init(&device1,0xabcd,0xef01,2,0,1);
   assert(ppcvm_pci_bus_add(&pci1,0,2,0,&device1)==0);
   assert(ppcvm_pegasos2_map_discovery_ii(&m,0x80000000u,4096)==PPCVM_BUS_OK);
   ppcvm_discovery_ii_enable_pci_config(&m.discovery_ii,&pci,&pci1);
+  assert(ppcvm_pci_map_mmio_aperture(&m.bus,&aperture,&pci,0x90000000u,4096)==PPCVM_BUS_OK);
   assert(ppcvm_pegasos2_boot_elf32(&m,elf,(size_t)length)==PPCVM_OK);
   free(elf);
   m.cpu.gpr[3]=0x80000000u;
+  m.cpu.gpr[11]=0x90000000u;
+  m.cpu.gpr[12]=0x13579bdfu;
   ppcvm_run_report report=ppcvm_cpu_run_bus_diagnostic(&m.cpu,&m.bus,256);
   assert(report.reason==PPCVM_RUN_HALT);
   assert(m.cpu.gpr[6]==1u);
-  assert(m.discovery_ii.config_address[0]==0x80001010u);
+  assert(state.writes==1u && state.reads==1u && state.value==0x13579bdfu);
+  uint32_t command=0;
+  assert(ppcvm_pci_bus_read32(&pci,0,2,0,4,&command)==0);
+  assert((command&2u)!=0);
+  assert(m.discovery_ii.config_address[0]==0x80001004u);
   uint32_t bar=0;
   assert(ppcvm_pci_bus_read32(&pci,0,2,0,0x10,&bar)==0);
   assert(bar==0x90000000u);
