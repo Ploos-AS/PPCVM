@@ -517,3 +517,16 @@ ppcvm_result ppcvm_pegasos2_step_diagnostic_irq(ppcvm_pegasos2 *m) {
   if (accepted>0) return PPCVM_OK;
   return ppcvm_pegasos2_step(m);
 }
+
+/* Candidate Discovery II IRQ path: controller mask and CPU MSR[EE] both gate delivery. */
+int ppcvm_pegasos2_poll_discovery_irq(ppcvm_pegasos2 *m) {
+  if (!m) return -1;
+  if (!ppcvm_discovery_ii_active_irq_low(&m->discovery_ii)) return 0;
+  return ppcvm_cpu_accept_external_irq(&m->cpu);
+}
+ppcvm_result ppcvm_pegasos2_step_discovery_irq(ppcvm_pegasos2 *m) {
+  if (!m) return PPCVM_MEMORY_FAULT;
+  int accepted=ppcvm_pegasos2_poll_discovery_irq(m);
+  if (accepted<0) return PPCVM_MEMORY_FAULT;
+  return accepted ? PPCVM_OK : ppcvm_pegasos2_step(m);
+}
