@@ -6,6 +6,7 @@ int main(void) {
   assert(ppcvm_pegasos2_init(&m,65536u)==0);
   /* ori r0,r0,0 is a supported no-op; rfi is exception return. */
   assert(ppcvm_memory_write32be(&m.ram,0x1000u,UINT32_C(0x60000000))==PPCVM_MEM_OK);
+  assert(ppcvm_memory_write32be(&m.ram,0x1004u,UINT32_C(0x60000000))==PPCVM_MEM_OK);
   assert(ppcvm_memory_write32be(&m.ram,PPCVM_VECTOR_EXTERNAL,UINT32_C(0x4c000064))==PPCVM_MEM_OK);
   m.cpu.pc=0x1000u;
   m.cpu.msr=UINT32_C(0x8000);
