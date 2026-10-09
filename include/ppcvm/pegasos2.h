@@ -73,6 +73,9 @@ int ppcvm_pegasos2_init(ppcvm_pegasos2 *machine, size_t ram_size);
 /* Opt-in synthetic interrupt delivery; not Discovery II register behavior. */
 int ppcvm_pegasos2_poll_diagnostic_irq(ppcvm_pegasos2 *machine);
 ppcvm_result ppcvm_pegasos2_step_diagnostic_irq(ppcvm_pegasos2 *machine);
+/* Opt-in provisional Discovery II CPU0 low IRQ delivery. */
+int ppcvm_pegasos2_poll_discovery_irq(ppcvm_pegasos2 *machine);
+ppcvm_result ppcvm_pegasos2_step_discovery_irq(ppcvm_pegasos2 *machine);
 /* Fetches one big-endian instruction from mapped memory and executes it. */
 ppcvm_result ppcvm_pegasos2_step(ppcvm_pegasos2 *machine);
 /* Opt-in synthetic trap: guest executes sc with r3=PVC1 magic and
