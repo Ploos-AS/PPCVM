@@ -24,7 +24,11 @@ typedef enum { PPCVM_OK = 0, PPCVM_UNSUPPORTED = 1, PPCVM_MEMORY_FAULT = 2 } ppc
 #define PPCVM_VECTOR_PROGRAM UINT32_C(0x700)
 #define PPCVM_VECTOR_SYSCALL UINT32_C(0xc00)
 void ppcvm_cpu_enter_exception(ppcvm_cpu *cpu, uint32_t vector, uint32_t resume_pc);
-/* Inject a CPU-level external interrupt only when MSR[EE] permits it.\n * Returns 1 if accepted, 0 if masked, -1 for null CPU. The caller owns\n * pending level state; this does not model Discovery II IRQ registers. */\nint ppcvm_cpu_accept_external_irq(ppcvm_cpu *cpu);\nvoid ppcvm_cpu_reset(ppcvm_cpu *cpu);
+/* Inject a CPU-level external interrupt only when MSR[EE] permits it.
+ * Returns 1 if accepted, 0 if masked, -1 for null CPU. The caller owns
+ * pending level state; this does not model Discovery II IRQ registers. */
+int ppcvm_cpu_accept_external_irq(ppcvm_cpu *cpu);
+void ppcvm_cpu_reset(ppcvm_cpu *cpu);
 ppcvm_result ppcvm_cpu_step(ppcvm_cpu *cpu, uint32_t instruction);
 ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_t instruction);
 ppcvm_result ppcvm_cpu_step_bus(ppcvm_cpu *cpu, ppcvm_bus *bus, uint32_t instruction);
