@@ -265,3 +265,38 @@ ppcvm_bus_result ppcvm_pci_map_mmio_aperture(ppcvm_bus *cpu_bus,
   return ppcvm_bus_map_mmio32(cpu_bus,base,size,aperture,
                               pci_aperture_read,pci_aperture_write);
 }
+
+/* Explicitly configured translation fixture; no undocumented controller
+ * register behavior is implied by this CPU bus aperture. */
+static ppcvm_bus_result translated_read(void *ctx,uint32_t offset,uint32_t *value) {
+  ppcvm_pci_translated_window *w=(ppcvm_pci_translated_window *)ctx;
+  if(!w || !w->enabled || !w->pci || !value) return PPCVM_BUS_UNMAPPED;
+  return ppcvm_pci_bus_mmio_read32(w->pci,w->pci_base+offset,value)==0 ?
+    PPCVM_BUS_OK : PPCVM_BUS_UNMAPPED;
+}
+static ppcvm_bus_result translated_write(void *ctx,uint32_t offset,uint32_t value) {
+  ppcvm_pci_translated_window *w=(ppcvm_pci_translated_window *)ctx;
+  if(!w || !w->enabled || !w->pci) return PPCVM_BUS_UNMAPPED;
+  return ppcvm_pci_bus_mmio_write32(w->pci,w->pci_base+offset,value)==0 ?
+    PPCVM_BUS_OK : PPCVM_BUS_UNMAPPED;
+}
+void ppcvm_pci_translated_window_enable(ppcvm_pci_translated_window *w,int enabled) {
+  if(w) w->enabled=(uint8_t)(enabled!=0);
+}
+ppcvm_bus_result ppcvm_pci_map_translated_window(ppcvm_bus *cpu_bus,
+    ppcvm_pci_translated_window *w,ppcvm_pci_bus *pci,
+    uint32_t cpu_base,uint32_t size,uint64_t pci_base) {
+  if(!cpu_bus || !w || !pci || !size || (cpu_base&3u) ||
+     (size&3u) || (pci_base&3u) ||
+     (uint64_t)cpu_base+size>UINT64_C(0x100000000) ||
+     pci_base>UINT64_MAX-(uint64_t)(size-1u))
+    return PPCVM_BUS_INVALID;
+  ppcvm_bus_result result=ppcvm_bus_map_mmio32(cpu_bus,cpu_base,size,w,
+      translated_read,translated_write);
+  if(result==PPCVM_BUS_OK) {
+    w->pci=pci;
+    w->pci_base=pci_base;
+    w->enabled=0;
+  }
+  return result;
+}
