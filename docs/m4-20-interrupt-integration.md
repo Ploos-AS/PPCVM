@@ -1,6 +1,6 @@
 # M4.20 — Pegasos II external interrupt integration
 
-Status: planned; this document defines acceptance criteria, not a claim of completed implementation.
+Status: in progress. Synthetic board IRQ delivery and regression coverage pass CI; documented Discovery II IRQ registers and a guest ELF fixture are not yet implemented.
 
 ## Scope
 Connect the CPU external interrupt acceptance path introduced in M4.19 to a deterministic Pegasos II board-level interrupt source and the Discovery II interrupt controller. Keep the initial test independent of proprietary firmware and guest OS images.
@@ -33,3 +33,11 @@ Connect the CPU external interrupt acceptance path introduced in M4.19 to a dete
 ## Exit gate
 
 M4.20 is complete only when all acceptance tests pass in CI and the evidence is linked. Firmware startup and OS boot remain separate later gates.
+
+## Verified intermediate evidence (2026-10-09)
+
+- [CI run 37922822632](https://github.com/Ploos-AS/PPCVM/actions/runs/37922822632): successful after the high-vector regression addition.
+- [CI run 37922786018](https://github.com/Ploos-AS/PPCVM/actions/runs/37922786018): successful after level-retrigger and independent-source regression additions.
+- Synthetic `irq_latch.h` and `irq_bridge.h` remain diagnostic primitives, not a verified MV64361 register map.
+- `ppcvm_pegasos2_step_diagnostic_irq` is opt-in. The ordinary Pegasos II step path is unchanged.
+- Outstanding gates: validated Discovery II interrupt register offsets and semantics; device-to-controller routing; guest ELF; complete CI acceptance evidence.
