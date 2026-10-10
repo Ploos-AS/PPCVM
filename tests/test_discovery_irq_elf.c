@@ -73,14 +73,13 @@ int main(int argc,char **argv) {
   assert(m.cpu.gpr[9]==1u); /* guest selected source 0 */
   assert(m.cpu.gpr[7]==UINT32_C(0x03000000)); /* bus-visible cause bits 0 and 1 */
   assert(m.cpu.gpr[6]==UINT32_C(0x50415353));
-  assert(m.discovery_ii.irq_cpu0_mask_low==0);
+  assert(m.discovery_ii.irq_cpu0_mask_low==1u);
   assert(m.discovery_ii.irq_asserted_low==2u); /* guest cleared both source 0 owners */
   assert(m.cpu.pc!=PPCVM_VECTOR_EXTERNAL);
   assert(irq_device.control==0u);
   assert(irq_device2.control==0u);
   assert(m.discovery_ii.irq_asserted_low==2u);
-  /* Diagnostic re-arm by host; guest-driven re-arm remains future work. */
-  m.discovery_ii.irq_cpu0_mask_low=1u;
+  /* IRQ mask remains enabled: the PPC32 guest re-armed it itself. */
   assert(ppcvm_pci_irq_device_write32(&irq_device,0,0,1)==0);
   assert(ppcvm_pci_irq_device_write32(&irq_device2,0,0,1)==0);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
