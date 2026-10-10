@@ -14,6 +14,7 @@ _start:
     .section .text.irq,"ax",@progbits
     .globl irq_handler
 irq_handler:
+    lwz 7,0x04(3)         /* read candidate cause register */
     li 4,0
     stw 4,0x14(3)         /* mask asserted source, not acknowledge */
     lis 6,0x5041
