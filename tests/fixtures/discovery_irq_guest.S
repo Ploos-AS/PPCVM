@@ -22,6 +22,11 @@ irq_handler:
     li 4,0
     stw 4,0(10)           /* clear device INTx through BAR0 */
     lwz 12,4(10)           /* read status after acknowledgement */
+    lis 13,3               /* second diagnostic PCI BAR0 = 0x31000 */
+    ori 13,13,0x1000
+    lwz 14,4(13)           /* second owner status before acknowledgement */
+    stw 4,0(13)            /* release second owner of shared IRQ source */
+    lwz 15,4(13)           /* second owner status after acknowledgement */
     stw 4,0x14(3)         /* mask source after device acknowledgement */
     li 9,1                /* source 0 handled marker */
     b 3f
