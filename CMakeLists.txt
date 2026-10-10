@@ -540,3 +540,7 @@ add_test(NAME pci_irq_matrix COMMAND test_pci_irq_matrix)
 add_executable(test_pci_irq_device tests/test_pci_irq_device.c)
 target_link_libraries(test_pci_irq_device PRIVATE ppcvm_core)
 add_test(NAME pci_irq_device COMMAND test_pci_irq_device)
+
+add_executable(test_pci_irq_device_bar tests/test_pci_irq_device_bar.c)
+target_link_libraries(test_pci_irq_device_bar PRIVATE ppcvm_core)
+add_test(NAME pci_irq_device_bar COMMAND test_pci_irq_device_bar)
