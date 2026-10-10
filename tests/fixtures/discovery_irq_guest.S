@@ -17,8 +17,12 @@ irq_handler:
     lwz 7,0x04(3)         /* read candidate cause register */
     andis. 8,7,0x0100    /* test bus-visible source 0 bit */
     beq 2f
+    lis 10,3               /* diagnostic PCI BAR0 = 0x30000 */
+    lwz 11,4(10)           /* read device status before acknowledgement */
     li 4,0
-    stw 4,0x14(3)         /* mask asserted source, not acknowledge */
+    stw 4,0(10)           /* clear device INTx through BAR0 */
+    lwz 12,4(10)           /* read status after acknowledgement */
+    stw 4,0x14(3)         /* mask source after device acknowledgement */
     li 9,1                /* source 0 handled marker */
     b 3f
 2:  li 9,0                /* no enabled source 0 in cause */
