@@ -50,7 +50,8 @@ int main(int argc,char **argv) {
   assert(ppcvm_pci_irq_matrix_set_level(&matrix,0,3,0,1,1)==0);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
-  for(unsigned i=0;i<6;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  for(unsigned i=0;i<10;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.gpr[9]==1u); /* guest selected source 0 */
   assert(m.cpu.gpr[7]==UINT32_C(0x03000000)); /* bus-visible cause bits 0 and 1 */
   assert(m.cpu.gpr[6]==UINT32_C(0x50415353));
   assert(m.discovery_ii.irq_cpu0_mask_low==0);
