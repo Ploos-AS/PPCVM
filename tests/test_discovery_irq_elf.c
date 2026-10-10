@@ -104,8 +104,15 @@ int main(int argc,char **argv) {
   assert(ppcvm_pci_irq_device_write32(&irq_device2,0,0,1)==0);
   assert(m.discovery_ii.irq_asserted_low==3u);
   /* Finish PASS instructions and rfi; pending IRQ must deliver on next step. */
-  for(unsigned i=0;i<3;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  for(unsigned i=0;i<2;i++) {
+    assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+    assert(m.cpu.pc!=PPCVM_VECTOR_EXTERNAL); /* no nested delivery */
+    assert((m.cpu.msr&UINT32_C(0x8000))==0u); /* MSR[EE] remains disabled */
+    assert(m.cpu.gpr[16]==3u);
+  }
+  assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK); /* rfi */
   assert(m.cpu.pc!=PPCVM_VECTOR_EXTERNAL);
+  assert((m.cpu.msr&UINT32_C(0x8000))!=0u);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
   for(unsigned i=0;i<24;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
