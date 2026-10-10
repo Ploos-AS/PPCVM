@@ -27,7 +27,8 @@ irq_handler:
     lwz 14,4(13)           /* second owner status before acknowledgement */
     stw 4,0(13)            /* release second owner of shared IRQ source */
     lwz 15,4(13)           /* second owner status after acknowledgement */
-    stw 4,0x14(3)         /* mask source after device acknowledgement */
+    lis 4,0x100            /* re-enable source 0 after both owners clear */
+    stw 4,0x14(3)         /* guest-controlled IRQ re-arm */
     li 9,1                /* source 0 handled marker */
     b 3f
 2:  li 9,0                /* no enabled source 0 in cause */
