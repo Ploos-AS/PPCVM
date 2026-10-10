@@ -84,6 +84,9 @@ int main(int argc,char **argv) {
   assert(ppcvm_pci_irq_device_write32(&irq_device2,0,0,1)==0);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
+  /* Inject another shared-line assertion while MSR[EE] is cleared by exception entry. */
+  assert(ppcvm_pci_irq_device_write32(&irq_device2,0,0,1)==0);
+  assert(m.discovery_ii.irq_asserted_low==3u);
   for(unsigned i=0;i<24;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.gpr[16]==2u);
   assert(irq_device.control==0u && irq_device2.control==0u);
