@@ -27,7 +27,12 @@ irq_handler:
     lwz 14,4(13)           /* second owner status before acknowledgement */
     stw 4,0(13)            /* release second owner of shared IRQ source */
     lwz 15,4(13)           /* second owner status after acknowledgement */
-    lis 4,0x100            /* re-enable source 0 after both owners clear */
+    lis 17,3               /* event-driven PCI BAR0 = 0x32000 */
+    ori 17,17,0x2000
+    lwz 18,0(17)           /* event pending bits before W1C */
+    stw 18,8(17)           /* guest acknowledges pending events */
+    lwz 19,0(17)           /* pending bits after acknowledgement */
+    lis 4,0x100            /* re-enable source 0 after all owners clear */
     stw 4,0x14(3)         /* guest-controlled IRQ re-arm */
     li 9,1                /* source 0 handled marker */
     b 3f
