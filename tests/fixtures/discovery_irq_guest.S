@@ -32,6 +32,7 @@ irq_handler:
     b 3f
 2:  li 9,0                /* no enabled source 0 in cause */
 3:
+    addi 16,16,1           /* number of handled interrupts */
     lis 6,0x5041
     ori 6,6,0x5353       /* PASS marker in r6 */
     rfi
