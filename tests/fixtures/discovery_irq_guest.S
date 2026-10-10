@@ -15,8 +15,14 @@ _start:
     .globl irq_handler
 irq_handler:
     lwz 7,0x04(3)         /* read candidate cause register */
+    andis. 8,7,0x0100    /* test bus-visible source 0 bit */
+    beq 2f
     li 4,0
     stw 4,0x14(3)         /* mask asserted source, not acknowledge */
+    li 9,1                /* source 0 handled marker */
+    b 3f
+2:  li 9,0                /* no enabled source 0 in cause */
+3:
     lis 6,0x5041
     ori 6,6,0x5353       /* PASS marker in r6 */
     rfi
