@@ -1,5 +1,6 @@
 #include "ppcvm/pegasos2.h"
 #include "ppcvm/pci_irq_device.h"
+#include "ppcvm/pci_event_device.h"
 #include "ppcvm/pci_irq_matrix.h"
 #include <assert.h>
 #include <stdint.h>
@@ -18,10 +19,11 @@ int main(int argc,char **argv) {
   fclose(fp);
   ppcvm_pegasos2 m;
   ppcvm_pci_bus pci;
-  ppcvm_pci_device device,device2,device3;
+  ppcvm_pci_device device,device2,device3,event_config;
   ppcvm_pci_irq_matrix matrix;
   ppcvm_pci_irq_device irq_device,irq_device2;
-  ppcvm_pci_mmio_aperture aperture,aperture2;
+  ppcvm_pci_event_device event_device;
+  ppcvm_pci_mmio_aperture aperture,aperture2,event_aperture;
   assert(ppcvm_pegasos2_init(&m,65536u)==0);
   assert(ppcvm_pegasos2_map_discovery_ii(&m,UINT32_C(0x20000),0x100u)==PPCVM_BUS_OK);
   ppcvm_discovery_ii_enable_irq_candidate(&m.discovery_ii);
@@ -48,6 +50,16 @@ int main(int argc,char **argv) {
   assert(ppcvm_pci_bus_set_mmio(&pci,0,3,0,&irq_device2,
       ppcvm_pci_irq_device_read32,ppcvm_pci_irq_device_write32)==0);
   assert(ppcvm_pci_map_mmio_aperture(&m.bus,&aperture2,&pci,0x31000u,16u)==PPCVM_BUS_OK);
+  ppcvm_pci_device_init(&event_config,0x1234,0x5681,2,0,1);
+  assert(ppcvm_pci_set_mem_bar32(&event_config,0,16u,0x32000u)==0);
+  assert(ppcvm_pci_bus_add(&pci,0,5,0,&event_config)==0);
+  assert(ppcvm_pci_bus_write32(&pci,0,5,0,4u,2u)==0);
+  assert(ppcvm_pci_irq_matrix_add(&matrix,0,5,0,1,0)==0);
+  assert(ppcvm_pci_event_device_init(&event_device,&matrix,0,5,0,1)==0);
+  assert(ppcvm_pci_bus_set_mmio(&pci,0,5,0,&event_device,
+      ppcvm_pci_event_device_read32,ppcvm_pci_event_device_write32)==0);
+  assert(ppcvm_pci_map_mmio_aperture(&m.bus,&event_aperture,&pci,0x32000u,16u)==PPCVM_BUS_OK);
+  assert(ppcvm_pci_event_device_write32(&event_device,0,4,1u)==0);
   assert(ppcvm_pegasos2_boot_elf32(&m,elf,(size_t)len)==PPCVM_OK);
   free(elf);
   assert(m.cpu.pc==0x1000u);
@@ -62,9 +74,12 @@ int main(int argc,char **argv) {
   assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0u);
   assert(ppcvm_pci_irq_device_write32(&irq_device,0,0,1)==0);
   assert(ppcvm_pci_irq_device_write32(&irq_device2,0,0,1)==0);
+  assert(ppcvm_pci_event_device_write32(&event_device,0,12,1u)==0);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
-  for(unsigned i=0;i<24;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  for(unsigned i=0;i<36;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.gpr[18]==1u && m.cpu.gpr[19]==0u);
+  assert(event_device.pending==0u);
   assert(m.cpu.gpr[11]==1u);
   assert(m.cpu.gpr[12]==0u);
   assert(m.cpu.gpr[16]==1u);
