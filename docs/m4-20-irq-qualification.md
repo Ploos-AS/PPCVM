@@ -34,17 +34,19 @@ The `test_discovery_irq_elf` case requires the cross-assembled
 As of 2026-10-10, GitHub Actions run
 [38050565791](https://github.com/Ploos-AS/PPCVM/actions/runs/38050565791)
 passed for commit `2f1653ff6`, covering three guest IRQ cycles.
-The later, stricter pre-`rfi` checks in commit `ecad513e1` are **not yet
-CI-verified** at the time this document was written.
+The stricter pre-`rfi` checks in commit `ecad513e1` passed in
+[run 38050622703](https://github.com/Ploos-AS/PPCVM/actions/runs/38050622703).
+The documentation revision `64d58fd6c` passed in
+[run 38050649079](https://github.com/Ploos-AS/PPCVM/actions/runs/38050649079).
 
-M4.20 is ready to close only when the latest head's CTest and PPC32
-assembly jobs pass and the candidate register map is clearly documented.
+**M4.20 synthetic-model qualification: PASS.** The register map remains
+provisional and these CI results do not establish hardware compatibility.
 Hardware-accurate Discovery II mapping and guest OS boot remain separate
 future milestones.
 
 ## Follow-up
 
-1. Confirm the latest GitHub Actions run passes on the final test revision.
+1. Preserve the passing CI baseline when introducing subsequent PCI models.
 2. Add precise step-by-step IRQ timing assertions for all handler transitions.
 3. Replace synthetic device registers with a documented, realistic PCI device.
 4. Compare candidate Discovery II offsets, endian behavior and routing with
