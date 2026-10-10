@@ -67,6 +67,7 @@ int main(int argc,char **argv) {
   for(unsigned i=0;i<24;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.gpr[11]==1u);
   assert(m.cpu.gpr[12]==0u);
+  assert(m.cpu.gpr[16]==1u);
   assert(m.cpu.gpr[14]==1u);
   assert(m.cpu.gpr[15]==0u);
   assert(m.cpu.gpr[9]==1u); /* guest selected source 0 */
@@ -77,6 +78,16 @@ int main(int argc,char **argv) {
   assert(m.cpu.pc!=PPCVM_VECTOR_EXTERNAL);
   assert(irq_device.control==0u);
   assert(irq_device2.control==0u);
+  assert(m.discovery_ii.irq_asserted_low==2u);
+  /* Diagnostic re-arm by host; guest-driven re-arm remains future work. */
+  m.discovery_ii.irq_cpu0_mask_low=1u;
+  assert(ppcvm_pci_irq_device_write32(&irq_device,0,0,1)==0);
+  assert(ppcvm_pci_irq_device_write32(&irq_device2,0,0,1)==0);
+  assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
+  for(unsigned i=0;i<24;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.gpr[16]==2u);
+  assert(irq_device.control==0u && irq_device2.control==0u);
   assert(m.discovery_ii.irq_asserted_low==2u);
   assert(ppcvm_pci_irq_matrix_set_level(&matrix,0,4,0,1,0)==0);
   assert(m.discovery_ii.irq_asserted_low==0u);
