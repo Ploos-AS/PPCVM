@@ -19,6 +19,17 @@ int ppcvm_pci_event_device_init(ppcvm_pci_event_device *d,
     uint8_t function,uint8_t pin);
 /* Reset an initialized device, releasing only its IRQ matrix ownership. */
 int ppcvm_pci_event_device_reset(ppcvm_pci_event_device *d);
+#define PPCVM_PCI_EVENT_SNAPSHOT_VERSION UINT32_C(1)
+typedef struct {
+  uint32_t version;
+  uint32_t pending;
+  uint32_t enable;
+} ppcvm_pci_event_snapshot;
+/* Snapshot is pointer-free; restore validates before changing IRQ state. */
+int ppcvm_pci_event_device_save(const ppcvm_pci_event_device *d,
+    ppcvm_pci_event_snapshot *snapshot);
+int ppcvm_pci_event_device_restore(ppcvm_pci_event_device *d,
+    const ppcvm_pci_event_snapshot *snapshot);
 int ppcvm_pci_event_device_read32(void *context,uint8_t bar,uint64_t offset,uint32_t *value);
 int ppcvm_pci_event_device_write32(void *context,uint8_t bar,uint64_t offset,uint32_t value);
 #endif
