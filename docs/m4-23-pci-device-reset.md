@@ -36,11 +36,14 @@ Discovery II hotplug, PCI power management, or guest OS boot.
 CI evidence:
 - Commit `f817607dd`, Actions run 38147394109: **success** for the
   initial reset test and existing regression suite.
-- Commit `936ebe3fc`: unregistered-owner failure assertion added;
-  CI qualification pending.
+- Commit `936ebe3fc`, Actions run 38147472830: **success** for
+  unregistered-owner failure assertion.
+- Commit `de7f8eb6c`, Actions run 38147486112: **success** for
+  the full regression suite after documentation update.
 
 ## Status
 
-**IN PROGRESS** until the unregistered-owner test passes CI.
+**M4.23 COMPLETE (synthetic PCI event reset lifecycle).** All reset
+acceptance tests pass CI.
 No claim of hardware reset semantics or physical Pegasos II
 compatibility is made.
