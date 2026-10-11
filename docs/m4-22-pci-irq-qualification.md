@@ -42,12 +42,12 @@ MorphOS boot, or PCI DMA support.
 CI evidence:
 - Commit `448a6ce67`, Actions run 38121183489: **success** for
   shared-source test registration and existing regression suite.
-- Commit `dcb6eef05`: BAR0 fault-boundary assertions committed;
-  **CI pending** at time of this documentation update.
+- Commit `dcb6eef05`, Actions run 38121228605: **success** for
+  BAR0 fault-boundary assertions and existing regression suite.
 
 ## Qualification status
 
-**M4.22 IN PROGRESS.** Shared-source tests are CI-qualified.
-Do not mark the BAR0 fault-boundary tests qualified until the latest
-workflow finishes successfully. Hardware compatibility remains outside
-this synthetic-model milestone.
+**M4.22 COMPLETE (synthetic PCI IRQ fault boundaries).** Shared-source
+and BAR0 fault-boundary tests passed CI. The existing PPC32 ELF fixture
+also remains in the passing regression suite. Hardware compatibility
+remains outside this synthetic-model milestone.
