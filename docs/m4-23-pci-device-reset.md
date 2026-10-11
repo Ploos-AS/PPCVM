@@ -21,3 +21,26 @@ another device's asserted interrupt.
 ## Scope boundary
 This is a synthetic device lifecycle, not a physical PCI reset,
 Discovery II hotplug, PCI power management, or guest OS boot.
+
+## Implementation and test evidence
+
+- `ppcvm_pci_event_device_reset()` uses the existing IRQ matrix
+  update path and only commits PENDING=0 and ENABLE=0 after successful
+  IRQ deassertion.
+- `tests/test_pci_event_reset.c` verifies shared-source isolation,
+  idempotent reset, cleared register reads, reuse after reset, and
+  null-argument rejection.
+- A follow-up test verifies that an unregistered IRQ owner causes
+  reset failure without changing pending or enable state.
+
+CI evidence:
+- Commit `f817607dd`, Actions run 38147394109: **success** for the
+  initial reset test and existing regression suite.
+- Commit `936ebe3fc`: unregistered-owner failure assertion added;
+  CI qualification pending.
+
+## Status
+
+**IN PROGRESS** until the unregistered-owner test passes CI.
+No claim of hardware reset semantics or physical Pegasos II
+compatibility is made.
