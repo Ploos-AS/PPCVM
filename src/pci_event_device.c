@@ -34,6 +34,38 @@ int ppcvm_pci_event_device_restore(ppcvm_pci_event_device *d,
       ((snapshot->pending|snapshot->enable)&~EVENT_BITS)!=0u) return -1;
   return apply(d,snapshot->pending,snapshot->enable);
 }
+static void put_be32(uint8_t *p,uint32_t v) {
+  p[0]=(uint8_t)(v>>24);p[1]=(uint8_t)(v>>16);
+  p[2]=(uint8_t)(v>>8);p[3]=(uint8_t)v;
+}
+static uint32_t get_be32(const uint8_t *p) {
+  return ((uint32_t)p[0]<<24)|((uint32_t)p[1]<<16)|
+      ((uint32_t)p[2]<<8)|(uint32_t)p[3];
+}
+int ppcvm_pci_event_snapshot_encode(const ppcvm_pci_event_snapshot *snapshot,
+    uint8_t *out,size_t size) {
+  if(!snapshot || !out || size<PPCVM_PCI_EVENT_WIRE_SIZE ||
+      snapshot->version!=PPCVM_PCI_EVENT_SNAPSHOT_VERSION ||
+      ((snapshot->pending|snapshot->enable)&~EVENT_BITS)!=0u) return -1;
+  out[0]='P';out[1]='E';out[2]='V';out[3]='T';
+  put_be32(out+4,snapshot->version);
+  put_be32(out+8,snapshot->pending);
+  put_be32(out+12,snapshot->enable);
+  return 0;
+}
+int ppcvm_pci_event_snapshot_decode(ppcvm_pci_event_snapshot *snapshot,
+    const uint8_t *data,size_t size) {
+  ppcvm_pci_event_snapshot temp;
+  if(!snapshot || !data || size!=PPCVM_PCI_EVENT_WIRE_SIZE ||
+      data[0]!='P' || data[1]!='E' || data[2]!='V' || data[3]!='T') return -1;
+  temp.version=get_be32(data+4);
+  temp.pending=get_be32(data+8);
+  temp.enable=get_be32(data+12);
+  if(temp.version!=PPCVM_PCI_EVENT_SNAPSHOT_VERSION ||
+      ((temp.pending|temp.enable)&~EVENT_BITS)!=0u) return -1;
+  *snapshot=temp;
+  return 0;
+}
 int ppcvm_pci_event_device_read32(void *context,uint8_t bar,uint64_t offset,uint32_t *value) {
   ppcvm_pci_event_device *d=(ppcvm_pci_event_device *)context;
   if(!d || !value || bar!=0) return -1;
