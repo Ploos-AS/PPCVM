@@ -59,13 +59,13 @@ int main(int argc,char **argv) {
   assert(ppcvm_pci_bus_set_mmio(&pci,0,5,0,&event_device,
       ppcvm_pci_event_device_read32,ppcvm_pci_event_device_write32)==0);
   assert(ppcvm_pci_map_mmio_aperture(&m.bus,&event_aperture,&pci,0x32000u,16u)==PPCVM_BUS_OK);
-  assert(ppcvm_pci_event_device_write32(&event_device,0,4,1u)==0);
   assert(ppcvm_pegasos2_boot_elf32(&m,elf,(size_t)len)==PPCVM_OK);
   free(elf);
   assert(m.cpu.pc==0x1000u);
   m.cpu.msr=UINT32_C(0x8000);
   /* Guest must enable mask itself before host asserts the source. */
-  for(unsigned i=0;i<3;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  for(unsigned i=0;i<7;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(event_device.enable==1u);
   assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0);
   assert(m.discovery_ii.irq_cpu0_mask_low==1u);
   /* Two PCI devices share source 0; a third asserts independent source 1. */
@@ -74,11 +74,12 @@ int main(int argc,char **argv) {
   assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0u);
   assert(ppcvm_pci_irq_device_write32(&irq_device,0,0,1)==0);
   assert(ppcvm_pci_irq_device_write32(&irq_device2,0,0,1)==0);
-  assert(ppcvm_pci_event_device_write32(&event_device,0,12,1u)==0);
+  assert(ppcvm_pci_event_device_write32(&event_device,0,12,3u)==0);
+  assert(event_device.pending==3u && event_device.enable==1u);
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
   for(unsigned i=0;i<36;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
-  assert(m.cpu.gpr[18]==1u && m.cpu.gpr[19]==0u);
+  assert(m.cpu.gpr[18]==3u && m.cpu.gpr[19]==0u);
   assert(event_device.pending==0u);
   assert(m.cpu.gpr[11]==1u);
   assert(m.cpu.gpr[12]==0u);
