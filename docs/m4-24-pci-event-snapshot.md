@@ -48,18 +48,21 @@ masked pending events, shared IRQ ownership, invalid versions,
 reserved bits, null arguments, and unregistered owner failure.
 The test is registered as `pci_event_snapshot` in CTest.
 
-Existing PPC32 guest tests remain in the overall CI suite. A dedicated
-PPC32 guest-visible restore test is **not yet implemented**, so
-acceptance criterion 6 is still outstanding.
+The PPC32 ELF regression now saves a masked pending event, resets and
+restores the device, then lets the guest unmask the event, receive the
+interrupt and acknowledge it through BAR0.
 
 ## CI evidence
 
 - Commit `3565299f3`, Actions run 38147764855: **success**
   for the initial API implementation and preexisting test suite.
-- Commit `18fa40d6d`: snapshot regression test registration;
-  CI result pending at documentation time.
+- Commit `18fa40d6d`, Actions run 38158913492: **success** for
+  snapshot regression test registration.
+- Commit `b753fa4ea`, Actions run 38160317737: **success** for
+  PPC32 guest-visible restore and the existing regression suite.
 
 ## Status
 
-**IN PROGRESS** pending CI qualification of the new snapshot tests
-and dedicated guest-visible restore coverage.
+**M4.24 COMPLETE (in-memory PCI event snapshots).** Snapshot round-trip,
+validation, shared IRQ isolation and guest-visible restore pass CI.
+Portable file serialization and whole-machine snapshots remain out of scope.
