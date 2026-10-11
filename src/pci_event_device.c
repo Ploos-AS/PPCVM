@@ -1,6 +1,8 @@
 #include "ppcvm/pci_event_device.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #define EVENT_BITS UINT32_C(0x0f)
 static int apply(ppcvm_pci_event_device *d,uint32_t pending,uint32_t enable) {
   if(ppcvm_pci_irq_matrix_set_level(d->matrix,d->bus,d->device,
@@ -72,14 +74,26 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
   ppcvm_pci_event_snapshot snapshot;
   uint8_t bytes[PPCVM_PCI_EVENT_WIRE_SIZE];
   FILE *fp;
+  char *temp;
+  size_t n;
   int ok;
   if(!path || ppcvm_pci_event_device_save(d,&snapshot)!=0 ||
       ppcvm_pci_event_snapshot_encode(&snapshot,bytes,sizeof(bytes))!=0)
     return -1;
-  fp=fopen(path,"wb");
-  if(!fp) return -1;
+  n=strlen(path);
+  if(n>SIZE_MAX-5u) return -1;
+  temp=(char *)malloc(n+5u);
+  if(!temp) return -1;
+  memcpy(temp,path,n);
+  memcpy(temp+n,".tmp",5u);
+  fp=fopen(temp,"wb");
+  if(!fp) {free(temp);return -1;}
   ok=fwrite(bytes,1,sizeof(bytes),fp)==sizeof(bytes);
+  if(fflush(fp)!=0) ok=0;
   if(fclose(fp)!=0) ok=0;
+  if(ok && rename(temp,path)!=0) ok=0;
+  if(!ok) remove(temp);
+  free(temp);
   return ok?0:-1;
 }
 int ppcvm_pci_event_device_load_file(ppcvm_pci_event_device *d,
