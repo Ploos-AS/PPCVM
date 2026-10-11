@@ -17,6 +17,8 @@ typedef struct {
 int ppcvm_pci_event_device_init(ppcvm_pci_event_device *d,
     ppcvm_pci_irq_matrix *matrix,uint8_t bus,uint8_t device,
     uint8_t function,uint8_t pin);
+/* Reset an initialized device, releasing only its IRQ matrix ownership. */
+int ppcvm_pci_event_device_reset(ppcvm_pci_event_device *d);
 int ppcvm_pci_event_device_read32(void *context,uint8_t bar,uint64_t offset,uint32_t *value);
 int ppcvm_pci_event_device_write32(void *context,uint8_t bar,uint64_t offset,uint32_t value);
 #endif
