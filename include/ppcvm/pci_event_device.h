@@ -2,6 +2,7 @@
 #define PPCVM_PCI_EVENT_DEVICE_H
 #include "ppcvm/pci_irq_matrix.h"
 #include <stdint.h>
+#include <stddef.h>
 /* Synthetic event-driven PCI BAR0 model; not a physical Pegasos II device.
  * 0x00 PENDING: read-only pending event bits
  * 0x04 ENABLE: read/write interrupt enable bits
@@ -30,6 +31,12 @@ int ppcvm_pci_event_device_save(const ppcvm_pci_event_device *d,
     ppcvm_pci_event_snapshot *snapshot);
 int ppcvm_pci_event_device_restore(ppcvm_pci_event_device *d,
     const ppcvm_pci_event_snapshot *snapshot);
+#define PPCVM_PCI_EVENT_WIRE_SIZE 16u
+/* PEVT + BE32 version + BE32 pending + BE32 enable. */
+int ppcvm_pci_event_snapshot_encode(const ppcvm_pci_event_snapshot *snapshot,
+    uint8_t *out,size_t size);
+int ppcvm_pci_event_snapshot_decode(ppcvm_pci_event_snapshot *snapshot,
+    const uint8_t *data,size_t size);
 int ppcvm_pci_event_device_read32(void *context,uint8_t bar,uint64_t offset,uint32_t *value);
 int ppcvm_pci_event_device_write32(void *context,uint8_t bar,uint64_t offset,uint32_t value);
 #endif
