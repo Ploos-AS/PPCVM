@@ -19,6 +19,21 @@ int ppcvm_pci_event_device_reset(ppcvm_pci_event_device *d) {
   if(!d || !d->matrix) return -1;
   return apply(d,0u,0u);
 }
+int ppcvm_pci_event_device_save(const ppcvm_pci_event_device *d,
+    ppcvm_pci_event_snapshot *snapshot) {
+  if(!d || !d->matrix || !snapshot) return -1;
+  snapshot->version=PPCVM_PCI_EVENT_SNAPSHOT_VERSION;
+  snapshot->pending=d->pending;
+  snapshot->enable=d->enable;
+  return 0;
+}
+int ppcvm_pci_event_device_restore(ppcvm_pci_event_device *d,
+    const ppcvm_pci_event_snapshot *snapshot) {
+  if(!d || !d->matrix || !snapshot ||
+      snapshot->version!=PPCVM_PCI_EVENT_SNAPSHOT_VERSION ||
+      ((snapshot->pending|snapshot->enable)&~EVENT_BITS)!=0u) return -1;
+  return apply(d,snapshot->pending,snapshot->enable);
+}
 int ppcvm_pci_event_device_read32(void *context,uint8_t bar,uint64_t offset,uint32_t *value) {
   ppcvm_pci_event_device *d=(ppcvm_pci_event_device *)context;
   if(!d || !value || bar!=0) return -1;
