@@ -29,5 +29,35 @@ compiler padding or matrix state may be serialized.
 This is a device-state interchange format, not a whole-VM snapshot,
 guest memory dump, PCI DMA migration or hardware compatibility claim.
 
+## Implementation
+
+The public codec API is declared in `include/ppcvm/pci_event_device.h`
+and implemented in `src/pci_event_device.c`:
+
+- `ppcvm_pci_event_snapshot_encode()` writes a deterministic 16-byte
+  frame after validating version and event-bit masks.
+- `ppcvm_pci_event_snapshot_decode()` requires exactly 16 bytes and
+  validates magic, version and event-bit masks before committing output.
+- The codec is independent of C struct padding and host byte order.
+
+`tests/test_pci_event_snapshot_wire.c` verifies exact wire bytes,
+round-trip, malformed input, short and oversized decode buffers,
+and rejection without partial output mutation.
+
+`tests/test_pci_event_snapshot.c` now exercises the complete device
+save → encode → decode → restore chain and checks restored IRQ state.
+The existing PPC32 ELF regression also passes.
+
+## CI qualification
+
+- `e58dc268d` — Actions run 38160573287: **success** (codec implementation).
+- `cc1e12c65` — Actions run 38161414128: **success** (codec test in CTest).
+- `520977ede` — Actions run 38161448272: **success** (end-to-end
+  snapshot serialization and IRQ restore, existing suite).
+
 ## Status
-Specification only. Implementation and CI qualification pending.
+
+**M4.25 COMPLETE.** Portable device-level snapshot wire format and
+integration tests are qualified by CI. Whole-machine snapshotting,
+durable storage I/O, migration and physical Pegasos II hardware
+compatibility remain outside this milestone.
