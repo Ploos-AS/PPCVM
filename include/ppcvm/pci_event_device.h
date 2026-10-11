@@ -37,6 +37,11 @@ int ppcvm_pci_event_snapshot_encode(const ppcvm_pci_event_snapshot *snapshot,
     uint8_t *out,size_t size);
 int ppcvm_pci_event_snapshot_decode(ppcvm_pci_event_snapshot *snapshot,
     const uint8_t *data,size_t size);
+/* Persist exactly one PEVT frame. Loading validates before restore. */
+int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
+    const char *path);
+int ppcvm_pci_event_device_load_file(ppcvm_pci_event_device *d,
+    const char *path);
 int ppcvm_pci_event_device_read32(void *context,uint8_t bar,uint64_t offset,uint32_t *value);
 int ppcvm_pci_event_device_write32(void *context,uint8_t bar,uint64_t offset,uint32_t value);
 #endif
