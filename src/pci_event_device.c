@@ -1,5 +1,6 @@
 #include "ppcvm/pci_event_device.h"
 #include <stddef.h>
+#include <stdio.h>
 #define EVENT_BITS UINT32_C(0x0f)
 static int apply(ppcvm_pci_event_device *d,uint32_t pending,uint32_t enable) {
   if(ppcvm_pci_irq_matrix_set_level(d->matrix,d->bus,d->device,
@@ -65,6 +66,39 @@ int ppcvm_pci_event_snapshot_decode(ppcvm_pci_event_snapshot *snapshot,
       ((temp.pending|temp.enable)&~EVENT_BITS)!=0u) return -1;
   *snapshot=temp;
   return 0;
+}
+int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
+    const char *path) {
+  ppcvm_pci_event_snapshot snapshot;
+  uint8_t bytes[PPCVM_PCI_EVENT_WIRE_SIZE];
+  FILE *fp;
+  int ok;
+  if(!path || ppcvm_pci_event_device_save(d,&snapshot)!=0 ||
+      ppcvm_pci_event_snapshot_encode(&snapshot,bytes,sizeof(bytes))!=0)
+    return -1;
+  fp=fopen(path,"wb");
+  if(!fp) return -1;
+  ok=fwrite(bytes,1,sizeof(bytes),fp)==sizeof(bytes);
+  if(fclose(fp)!=0) ok=0;
+  return ok?0:-1;
+}
+int ppcvm_pci_event_device_load_file(ppcvm_pci_event_device *d,
+    const char *path) {
+  ppcvm_pci_event_snapshot snapshot;
+  uint8_t bytes[PPCVM_PCI_EVENT_WIRE_SIZE];
+  FILE *fp;
+  size_t n;
+  int extra,close_ok;
+  if(!d || !path) return -1;
+  fp=fopen(path,"rb");
+  if(!fp) return -1;
+  n=fread(bytes,1,sizeof(bytes),fp);
+  extra=fgetc(fp);
+  close_ok=fclose(fp)==0;
+  if(n!=sizeof(bytes) || extra!=EOF || !close_ok ||
+      ppcvm_pci_event_snapshot_decode(&snapshot,bytes,sizeof(bytes))!=0)
+    return -1;
+  return ppcvm_pci_event_device_restore(d,&snapshot);
 }
 int ppcvm_pci_event_device_read32(void *context,uint8_t bar,uint64_t offset,uint32_t *value) {
   ppcvm_pci_event_device *d=(ppcvm_pci_event_device *)context;
