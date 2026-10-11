@@ -15,6 +15,10 @@ int ppcvm_pci_event_device_init(ppcvm_pci_event_device *d,
   d->pin=pin;d->pending=0;d->enable=0;
   return 0;
 }
+int ppcvm_pci_event_device_reset(ppcvm_pci_event_device *d) {
+  if(!d || !d->matrix) return -1;
+  return apply(d,0u,0u);
+}
 int ppcvm_pci_event_device_read32(void *context,uint8_t bar,uint64_t offset,uint32_t *value) {
   ppcvm_pci_event_device *d=(ppcvm_pci_event_device *)context;
   if(!d || !value || bar!=0) return -1;
