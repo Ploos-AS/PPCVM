@@ -56,6 +56,18 @@ int main(void) {
   assert(ppcvm_discovery_ii_active_irq_low(&controller)==1u);
   assert(ppcvm_pci_event_device_load_file(&event,0)==-1);
   assert(ppcvm_pci_event_device_save_file(&event,0)==-1);
+  /* Replacing an existing file must publish the new complete frame. */
+  assert(ppcvm_pci_event_device_write32(&event,0,8,1u)==0);
+  assert(ppcvm_pci_event_device_write32(&event,0,4,2u)==0);
+  assert(ppcvm_pci_event_device_save_file(&event,path)==0);
+  assert(ppcvm_pci_event_device_reset(&event)==0);
+  assert(ppcvm_pci_event_device_load_file(&event,path)==0);
+  assert(event.pending==2u && event.enable==2u);
+  assert(ppcvm_discovery_ii_active_irq_low(&controller)==1u);
+  /* A failed staging open must leave the published snapshot untouched. */
+  assert(ppcvm_pci_event_device_save_file(&event,".")==-1);
+  assert(ppcvm_pci_event_device_load_file(&event,path)==0);
+  assert(event.pending==2u && event.enable==2u);
   assert(ppcvm_pci_event_device_reset(&event)==0);
   assert(ppcvm_discovery_ii_active_irq_low(&controller)==0u);
   assert(remove(path)==0);
