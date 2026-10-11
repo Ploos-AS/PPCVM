@@ -32,7 +32,9 @@ irq_handler:
     stw 4,0(13)            /* release second owner of shared IRQ source */
     lwz 15,4(13)           /* second owner status after acknowledgement */
     lwz 18,0(17)           /* event pending bits before W1C */
-    stw 18,8(17)           /* guest acknowledges pending events */
+    lwz 21,4(17)           /* read enabled event mask */
+    and 22,18,21           /* acknowledge only enabled pending events */
+    stw 22,8(17)           /* preserve disabled pending events */
     lwz 19,0(17)           /* pending bits after acknowledgement */
     lis 4,0x100            /* re-enable source 0 after all owners clear */
     stw 4,0x14(3)         /* guest-controlled IRQ re-arm */
