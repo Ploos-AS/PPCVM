@@ -28,5 +28,38 @@ used by normal register writes.
 This is not whole-machine snapshotting, migration, DMA serialization,
 or a claim of physical Pegasos II hardware compatibility.
 
+## Implemented API
+
+`ppcvm_pci_event_device_save()` copies a versioned, pointer-free
+`ppcvm_pci_event_snapshot` containing PENDING and ENABLE. The current
+version is 1. This is an in-memory C structure, not a portable
+on-disk serialization format: byte order, padding, and file format
+are not specified.
+
+`ppcvm_pci_event_device_restore()` rejects null arguments, unsupported
+versions, and reserved bits (only bits 0–3 are valid). It updates the
+IRQ matrix before committing register state. An unregistered IRQ owner
+causes restore failure without changing the device's register values.
+
+## Regression coverage
+
+`tests/test_pci_event_snapshot.c` covers active IRQ round-trip,
+masked pending events, shared IRQ ownership, invalid versions,
+reserved bits, null arguments, and unregistered owner failure.
+The test is registered as `pci_event_snapshot` in CTest.
+
+Existing PPC32 guest tests remain in the overall CI suite. A dedicated
+PPC32 guest-visible restore test is **not yet implemented**, so
+acceptance criterion 6 is still outstanding.
+
+## CI evidence
+
+- Commit `3565299f3`, Actions run 38147764855: **success**
+  for the initial API implementation and preexisting test suite.
+- Commit `18fa40d6d`: snapshot regression test registration;
+  CI result pending at documentation time.
+
 ## Status
-Specification created; implementation and qualification pending.
+
+**IN PROGRESS** pending CI qualification of the new snapshot tests
+and dedicated guest-visible restore coverage.
