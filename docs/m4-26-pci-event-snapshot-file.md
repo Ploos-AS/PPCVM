@@ -23,5 +23,40 @@ mutating device or IRQ state.
 Device-level file persistence only. No whole-machine freeze,
 atomic multi-device snapshot, guest RAM capture or migration.
 
+## Implementation and tests
+
+`ppcvm_pci_event_device_save_file()` encodes a 16-byte PEVT frame
+and writes it to a sibling `.tmp` path, then attempts to rename it
+over the destination. A failed write, close or rename reports an error.
+`ppcvm_pci_event_device_load_file()` reads exactly one frame and
+rejects truncated, oversized or malformed data before restoring
+the device's IRQ state.
+
+`tests/test_pci_event_snapshot_file.c` covers successful file
+round-trip, exact frame length, corrupt inputs, unchanged IRQ state
+after failed load, replacement of a previously published snapshot,
+and failure to stage a write.
+
+## CI qualification
+
+- `9c858e141`, Actions run 38161556259: **success** — file I/O API.
+- `5c0c29d1f`, Actions run 38167238244: **success** — file regression.
+- `8ba8231dd`, Actions run 38167357860: **success** — staged writes.
+- `880f1a074`, Actions run 38167403545: **success** — replacement
+  and staging-failure regression, including prior tests.
+
+## Remaining limitations
+
+The staging path is a fixed `.tmp` sibling and is **not safe for
+concurrent writers**. This is not guaranteed crash-durable: there
+is no file or directory fsync. Rename replacement behavior may
+vary by host OS. Failed writes may leave a partial temporary file,
+which the implementation attempts to remove. The file API is not
+suitable for untrusted multi-user directories without additional
+hardening.
+
 ## Status
-Specification created; implementation pending.
+
+**M4.26 COMPLETE for single-writer, best-effort device-level file
+persistence**, qualified by CI. Crash durability, concurrency-safe
+staging and whole-machine snapshots remain future work.
