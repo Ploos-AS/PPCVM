@@ -79,8 +79,9 @@ int main(int argc,char **argv) {
   assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
   assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
   for(unsigned i=0;i<36;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
-  assert(m.cpu.gpr[18]==3u && m.cpu.gpr[19]==0u);
-  assert(event_device.pending==0u);
+  assert(m.cpu.gpr[18]==3u && m.cpu.gpr[19]==2u);
+  assert(event_device.pending==2u);
+  assert(event_device.enable==1u);
   assert(m.cpu.gpr[11]==1u);
   assert(m.cpu.gpr[12]==0u);
   assert(m.cpu.gpr[16]==1u);
@@ -137,6 +138,18 @@ int main(int argc,char **argv) {
   assert(m.discovery_ii.irq_asserted_low==2u);
   assert(ppcvm_pci_irq_matrix_set_level(&matrix,0,4,0,1,0)==0);
   assert(m.discovery_ii.irq_asserted_low==0u);
+  /* Pending masked bit 1 must not have asserted IRQ source 0. */
+  assert(event_device.pending==2u && event_device.enable==1u);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0u);
+  /* Enable bit 1 as the guest would via its BAR0 mapping in a later step. */
+  assert(ppcvm_pci_event_device_write32(&event_device,0,4,3u)==0);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==1u);
+  assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(m.cpu.pc==PPCVM_VECTOR_EXTERNAL);
+  for(unsigned i=0;i<36;i++) assert(ppcvm_pegasos2_step_discovery_irq(&m)==PPCVM_OK);
+  assert(event_device.pending==0u);
+  assert(m.cpu.gpr[16]==5u);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0u);
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
