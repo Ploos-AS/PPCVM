@@ -23,6 +23,7 @@ int main(int argc,char **argv) {
   ppcvm_pci_irq_matrix matrix;
   ppcvm_pci_irq_device irq_device,irq_device2;
   ppcvm_pci_event_device event_device;
+  ppcvm_pci_event_snapshot event_snapshot;
   ppcvm_pci_mmio_aperture aperture,aperture2,event_aperture;
   assert(ppcvm_pegasos2_init(&m,65536u)==0);
   assert(ppcvm_pegasos2_map_discovery_ii(&m,UINT32_C(0x20000),0x100u)==PPCVM_BUS_OK);
@@ -140,6 +141,13 @@ int main(int argc,char **argv) {
   assert(m.discovery_ii.irq_asserted_low==2u);
   assert(ppcvm_pci_irq_matrix_set_level(&matrix,0,4,0,1,0)==0);
   assert(m.discovery_ii.irq_asserted_low==0u);
+  assert(event_device.pending==2u && event_device.enable==1u);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0u);
+  /* Restore masked pending event before guest-controlled unmask. */
+  assert(ppcvm_pci_event_device_save(&event_device,&event_snapshot)==0);
+  assert(ppcvm_pci_event_device_reset(&event_device)==0);
+  assert(event_device.pending==0u && event_device.enable==0u);
+  assert(ppcvm_pci_event_device_restore(&event_device,&event_snapshot)==0);
   assert(event_device.pending==2u && event_device.enable==1u);
   assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0u);
   for(unsigned i=0;i<64 && event_device.enable!=3u;i++)
