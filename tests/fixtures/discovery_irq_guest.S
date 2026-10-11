@@ -13,7 +13,11 @@ _start:
     ori 17,17,0x2000
     li 20,1                /* enable event bit 0, leave bit 1 masked */
     stw 20,4(17)           /* guest writes event ENABLE */
-1:  b 1b                   /* wait for external exception */
+1:  cmpwi 16,4             /* after four IRQs, unmask pending event bit 1 */
+    bne 1b
+    li 20,3
+    stw 20,4(17)           /* guest enables pending event through BAR0 */
+2:  b 2b                   /* wait for next external exception */
 
     .section .text.irq,"ax",@progbits
     .globl irq_handler
