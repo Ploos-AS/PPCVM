@@ -9,6 +9,10 @@ _start:
     lis 3,2                /* r3 = 0x20000 controller base */
     lis 4,0x100            /* bus-visible 0x01000000 maps to mask bit 0 */
     stw 4,0x14(3)         /* enable CPU0 IRQ source 0 (candidate) */
+    lis 17,3               /* event-driven PCI BAR0 = 0x32000 */
+    ori 17,17,0x2000
+    li 20,1                /* enable event bit 0, leave bit 1 masked */
+    stw 20,4(17)           /* guest writes event ENABLE */
 1:  b 1b                   /* wait for external exception */
 
     .section .text.irq,"ax",@progbits
@@ -27,8 +31,6 @@ irq_handler:
     lwz 14,4(13)           /* second owner status before acknowledgement */
     stw 4,0(13)            /* release second owner of shared IRQ source */
     lwz 15,4(13)           /* second owner status after acknowledgement */
-    lis 17,3               /* event-driven PCI BAR0 = 0x32000 */
-    ori 17,17,0x2000
     lwz 18,0(17)           /* event pending bits before W1C */
     stw 18,8(17)           /* guest acknowledges pending events */
     lwz 19,0(17)           /* pending bits after acknowledgement */
