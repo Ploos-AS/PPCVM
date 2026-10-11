@@ -46,6 +46,15 @@ int main(void) {
   assert(ppcvm_discovery_ii_active_irq_low(&controller)==0u);
   assert(ppcvm_pci_event_device_reset(&a)==0);
   assert(a.pending==0u && a.enable==0u);
+  /* An unregistered IRQ owner cannot reset; its state is preserved. */
+  {
+    ppcvm_pci_event_device orphan;
+    assert(ppcvm_pci_event_device_init(&orphan,&matrix,0,7,0,1)==0);
+    orphan.pending=3u;
+    orphan.enable=1u;
+    assert(ppcvm_pci_event_device_reset(&orphan)==-1);
+    assert(orphan.pending==3u && orphan.enable==1u);
+  }
   /* Invalid input must not mutate a valid device. */
   assert(ppcvm_pci_event_device_reset(0)==-1);
   assert(a.pending==0u && a.enable==0u);
