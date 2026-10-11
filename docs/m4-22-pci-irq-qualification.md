@@ -24,5 +24,30 @@ and guest-driven interrupt acknowledgement.
 No claim of physical Pegasos II register compatibility, firmware boot,
 MorphOS boot, or PCI DMA support.
 
-## Initial status
-Specification only. Implementation and CI qualification pending.
+## Implementation and qualification evidence
+
+- `tests/test_pci_event_shared.c` covers two PCI event devices sharing
+  one Discovery II source. Acknowledging one device or one pending bit
+  must not release another asserted owner. Disabled pending events are
+  retained and delivered when enabled. Invalid writes must not change
+  event state.
+- `tests/test_pci_event_device_bar.c` additionally covers rejected
+  writes to read-only registers, reserved event bits, and MMIO accesses
+  while PCI Command memory decode is disabled. State and IRQ level
+  must remain unchanged after rejected operations.
+- `tests/test_discovery_irq_elf.c` preserves the PPC32 guest
+  acknowledgement, masked-pending unmask, and post-`rfi` delivery
+  regression checks from M4.21.
+
+CI evidence:
+- Commit `448a6ce67`, Actions run 38121183489: **success** for
+  shared-source test registration and existing regression suite.
+- Commit `dcb6eef05`: BAR0 fault-boundary assertions committed;
+  **CI pending** at time of this documentation update.
+
+## Qualification status
+
+**M4.22 IN PROGRESS.** Shared-source tests are CI-qualified.
+Do not mark the BAR0 fault-boundary tests qualified until the latest
+workflow finishes successfully. Hardware compatibility remains outside
+this synthetic-model milestone.
