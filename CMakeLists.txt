@@ -556,3 +556,7 @@ add_test(NAME pci_event_device_bar COMMAND test_pci_event_device_bar)
 add_executable(test_pci_event_shared tests/test_pci_event_shared.c)
 target_link_libraries(test_pci_event_shared PRIVATE ppcvm_core)
 add_test(NAME pci_event_shared COMMAND test_pci_event_shared)
+
+add_executable(test_pci_event_reset tests/test_pci_event_reset.c)
+target_link_libraries(test_pci_event_reset PRIVATE ppcvm_core)
+add_test(NAME pci_event_reset COMMAND test_pci_event_reset)
