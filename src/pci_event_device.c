@@ -1,8 +1,15 @@
+#ifndef _WIN32
+#define _POSIX_C_SOURCE 200809L
+#endif
 #include "ppcvm/pci_event_device.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
+#include <unistd.h>
+#include <fcntl.h>
+#endif
 #define EVENT_BITS UINT32_C(0x0f)
 static int apply(ppcvm_pci_event_device *d,uint32_t pending,uint32_t enable) {
   if(ppcvm_pci_irq_matrix_set_level(d->matrix,d->bus,d->device,
@@ -81,6 +88,8 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
       ppcvm_pci_event_snapshot_encode(&snapshot,bytes,sizeof(bytes))!=0)
     return -1;
   n=strlen(path);
+#ifdef _WIN32
+  /* Windows fallback remains single-writer; unique staging is POSIX-only. */
   if(n>SIZE_MAX-5u) return -1;
   temp=(char *)malloc(n+5u);
   if(!temp) return -1;
@@ -88,8 +97,23 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
   memcpy(temp+n,".tmp",5u);
   fp=fopen(temp,"wb");
   if(!fp) {free(temp);return -1;}
+#else
+  int fd;
+  if(n>SIZE_MAX-12u) return -1;
+  temp=(char *)malloc(n+12u);
+  if(!temp) return -1;
+  memcpy(temp,path,n);
+  memcpy(temp+n,".tmp.XXXXXX",12u);
+  fd=mkstemp(temp);
+  if(fd<0) {free(temp);return -1;}
+  fp=fdopen(fd,"wb");
+  if(!fp) {close(fd);unlink(temp);free(temp);return -1;}
+#endif
   ok=fwrite(bytes,1,sizeof(bytes),fp)==sizeof(bytes);
   if(fflush(fp)!=0) ok=0;
+#ifndef _WIN32
+  if(ok && fsync(fileno(fp))!=0) ok=0;
+#endif
   if(fclose(fp)!=0) ok=0;
   if(ok && rename(temp,path)!=0) ok=0;
   if(!ok) remove(temp);
