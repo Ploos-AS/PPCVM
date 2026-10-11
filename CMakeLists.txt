@@ -564,3 +564,7 @@ add_test(NAME pci_event_reset COMMAND test_pci_event_reset)
 add_executable(test_pci_event_snapshot tests/test_pci_event_snapshot.c)
 target_link_libraries(test_pci_event_snapshot PRIVATE ppcvm_core)
 add_test(NAME pci_event_snapshot COMMAND test_pci_event_snapshot)
+
+add_executable(test_pci_event_snapshot_wire tests/test_pci_event_snapshot_wire.c)
+target_link_libraries(test_pci_event_snapshot_wire PRIVATE ppcvm_core)
+add_test(NAME pci_event_snapshot_wire COMMAND test_pci_event_snapshot_wire)
