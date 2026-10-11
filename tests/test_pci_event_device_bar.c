@@ -40,6 +40,27 @@ int main(void) {
   assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==1u);
   assert(ppcvm_pci_bus_mmio_write32(&pci,0x32008u,1u)==0);
   assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0u);
+  /* Rejected BAR writes must not change pending, enable, or IRQ level. */
+  assert(ppcvm_pci_bus_mmio_write32(&pci,0x32004u,3u)==0);
+  assert(ppcvm_pci_bus_mmio_write32(&pci,0x3200cu,2u)==0);
+  assert(device.pending==2u && device.enable==3u);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==1u);
+  assert(ppcvm_pci_bus_mmio_write32(&pci,0x3200cu,16u)!=0);
+  assert(ppcvm_pci_bus_mmio_write32(&pci,0x32000u,1u)!=0);
+  assert(ppcvm_pci_bus_mmio_write32(&pci,0x32008u,16u)!=0);
+  assert(device.pending==2u && device.enable==3u);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==1u);
+  /* Memory-space disabled: no event loss and no MMIO writes accepted. */
+  assert(ppcvm_pci_bus_write32(&pci,0,5,0,4u,0u)==0);
+  assert(ppcvm_pci_bus_mmio_write32(&pci,0x32008u,2u)!=0);
+  assert(ppcvm_pci_bus_mmio_write32(&pci,0x32004u,0u)!=0);
+  assert(device.pending==2u && device.enable==3u);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==1u);
+  assert(ppcvm_pci_bus_write32(&pci,0,5,0,4u,2u)==0);
+  assert(ppcvm_pci_bus_mmio_read32(&pci,0x32000u,&value)==0 && value==2u);
+  assert(ppcvm_pci_bus_mmio_write32(&pci,0x32008u,2u)==0);
+  assert(device.pending==0u);
+  assert(ppcvm_discovery_ii_active_irq_low(&m.discovery_ii)==0u);
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
