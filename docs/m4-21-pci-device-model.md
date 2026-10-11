@@ -61,8 +61,10 @@ programmable outbound-window model.
 CI evidence:
 - Commit `a4c30f10d`: success, Actions run 38120887803 (masked event
   preserved and host-side enable transition).
-- Commit `7238289a0`: guest-controlled unmask scenario; CI result must
-  be checked before marking it qualified.
+- Commit `7238289a0`: guest-controlled unmask scenario, Actions run
+  38121045638 — success.
+- Commit `1c417b793`: register documentation and full suite,
+  Actions run 38121076069 — success.
 
 ## Remaining limitations
 
@@ -74,3 +76,13 @@ CI evidence:
   against real PCI hardware.
 - Actual MV64361 register addresses and interrupt routing require
   hardware documentation or independent validation.
+
+## Qualification verdict
+
+**M4.21 COMPLETE (synthetic PCI event model).** The host-side register
+semantics, BAR0 decoding, masked-pending behavior, PPC32 guest-controlled
+unmasking, and guest acknowledgement are covered by passing CI.
+
+This verdict does **not** imply that MorphOS, AmigaOS 4, or a real
+Pegasos II boots, nor that Discovery II register mappings are hardware
+validated. Those remain separate milestones.
