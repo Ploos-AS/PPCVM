@@ -130,7 +130,7 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
     else {
       if(slash) memcpy(dir,path,len);
       else dir[0]='.';
-      dir[len]='\\0';
+      dir[len]=0;
       dirfd=open(dir,O_RDONLY);
       if(dirfd<0) ok=0;
       else {
