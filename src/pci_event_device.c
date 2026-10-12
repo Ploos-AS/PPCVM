@@ -116,6 +116,31 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
 #endif
   if(fclose(fp)!=0) ok=0;
   if(ok && rename(temp,path)!=0) ok=0;
+#ifndef _WIN32
+  /* Sync the containing directory after publication where supported.
+   * A sync failure is reported even though rename may have succeeded. */
+  if(ok) {
+    const char *slash=strrchr(path,'/');
+    char *dir;
+    int dirfd;
+    size_t len=slash?(size_t)(slash-path):1u;
+    if(slash && len==0u) len=1u;
+    dir=(char *)malloc(len+1u);
+    if(!dir) ok=0;
+    else {
+      if(slash) memcpy(dir,path,len);
+      else dir[0]='.';
+      dir[len]='\\0';
+      dirfd=open(dir,O_RDONLY);
+      if(dirfd<0) ok=0;
+      else {
+        if(fsync(dirfd)!=0) ok=0;
+        if(close(dirfd)!=0) ok=0;
+      }
+      free(dir);
+    }
+  }
+#endif
   if(!ok) remove(temp);
   free(temp);
   return ok?0:-1;
