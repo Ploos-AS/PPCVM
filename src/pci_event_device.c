@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #ifndef _WIN32
 #include <unistd.h>
 #include <fcntl.h>
@@ -89,14 +92,36 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
     return -1;
   n=strlen(path);
 #ifdef _WIN32
-  /* Windows fallback remains single-writer; unique staging is POSIX-only. */
-  if(n>SIZE_MAX-5u) return -1;
-  temp=(char *)malloc(n+5u);
+  /* Reserve a unique sibling with CREATE_NEW, then publish with MoveFileExA. */
+  HANDLE handle;
+  DWORD written;
+  unsigned attempt;
+  if(n>SIZE_MAX-40u) return -1;
+  temp=(char *)malloc(n+40u);
   if(!temp) return -1;
-  memcpy(temp,path,n);
-  memcpy(temp+n,".tmp",5u);
-  fp=fopen(temp,"wb");
-  if(!fp) {free(temp);return -1;}
+  handle=INVALID_HANDLE_VALUE;
+  for(attempt=0;attempt<256u;attempt++) {
+    static volatile LONG sequence=0;
+    LONG serial=InterlockedIncrement(&sequence);
+    int count=snprintf(temp,n+40u,"%s.tmp.%lu.%ld",path,
+        (unsigned long)GetCurrentProcessId(),(long)serial);
+    if(count<0 || (size_t)count>=n+40u) break;
+    handle=CreateFileA(temp,GENERIC_WRITE,0,NULL,CREATE_NEW,
+        FILE_ATTRIBUTE_NORMAL,NULL);
+    if(handle!=INVALID_HANDLE_VALUE) break;
+    if(GetLastError()!=ERROR_FILE_EXISTS &&
+        GetLastError()!=ERROR_ALREADY_EXISTS) break;
+  }
+  if(handle==INVALID_HANDLE_VALUE) {free(temp);return -1;}
+  ok=WriteFile(handle,bytes,(DWORD)sizeof(bytes),&written,NULL)!=0 &&
+      written==(DWORD)sizeof(bytes);
+  if(ok && !FlushFileBuffers(handle)) ok=0;
+  if(!CloseHandle(handle)) ok=0;
+  if(ok && !MoveFileExA(temp,path,MOVEFILE_REPLACE_EXISTING |
+      MOVEFILE_WRITE_THROUGH)) ok=0;
+  if(!ok) DeleteFileA(temp);
+  free(temp);
+  return ok?0:-1;
 #else
   int fd;
   if(n>SIZE_MAX-12u) return -1;
