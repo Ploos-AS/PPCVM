@@ -25,5 +25,34 @@ Avoid assumptions that POSIX rename semantics apply to Windows.
 Device-level file persistence only; not whole-machine snapshots,
 migration or atomic multi-device state capture.
 
+## Implementation
+
+The Windows writer now uses `CreateFileA(..., CREATE_NEW)` with a
+process-ID and interlocked sequence suffix for exclusive sibling
+staging, `WriteFile`, `FlushFileBuffers`, `CloseHandle`, and
+`MoveFileExA(MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)`.
+Failure cleanup targets only the staging pathname owned by that
+operation. The PEVT wire format remains unchanged.
+
+The existing concurrent-writer CTest now exercises two Windows
+threads writing distinct snapshots to one destination. On POSIX,
+the test continues to use separate processes. Windows CI is
+enabled in `.github/workflows/ci.yml`.
+
+## Limitations
+
+- The Windows regression uses two threads in one process, not two
+  independent processes. The exclusive-create scheme uses a
+  per-process interlocked counter and process ID.
+- A successful Windows replacement is not a universal power-loss
+  guarantee. Filesystem, hardware and API limitations still apply.
+- Concurrent writes are last-successful-replacement-wins. No
+  inter-writer coordination or full-machine consistency is implied.
+- Windows pathname handling currently uses ANSI APIs; Unicode
+  filenames and long-path handling need separate coverage.
+
 ## Status
-Specification created; implementation pending.
+
+Implementation and regression test committed. Awaiting a single
+successful CI run covering Linux, Windows and PowerPC diagnostic
+jobs after the platform-guard fix (`9d4878a`).
