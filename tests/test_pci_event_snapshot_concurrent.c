@@ -6,11 +6,66 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
+#ifdef _WIN32
+typedef struct {
+  ppcvm_pci_event_device *device;
+  const char *path;
+} writer_args;
+static DWORD WINAPI writer(LPVOID opaque) {
+  writer_args *args=(writer_args *)opaque;
+  unsigned i;
+  for(i=0;i<32u;i++)
+    if(ppcvm_pci_event_device_save_file(args->device,args->path)!=0)
+      return 1u;
+  return 0u;
+}
+#endif
 int main(void) {
+#ifdef _WIN32
+  const char *path="pci-event-concurrent.pevt";
+  ppcvm_pci_bus pci;
+  ppcvm_pci_device config;
+  ppcvm_discovery_ii controller;
+  ppcvm_pci_irq_matrix matrix;
+  ppcvm_pci_event_device first,second;
+  writer_args args[2];
+  HANDLE threads[2];
+  DWORD result;
+  uint8_t frame[PPCVM_PCI_EVENT_WIRE_SIZE];
+  ppcvm_pci_event_snapshot snapshot;
+  FILE *f;
+  ppcvm_pci_bus_init(&pci);
+  ppcvm_pci_device_init(&config,0x1234,0x5681,2,0,1);
+  assert(ppcvm_pci_bus_add(&pci,0,2,0,&config)==0);
+  ppcvm_discovery_ii_init(&controller);
+  assert(ppcvm_pci_irq_matrix_init(&matrix,&pci,&controller)==0);
+  assert(ppcvm_pci_irq_matrix_add(&matrix,0,2,0,1,0)==0);
+  assert(ppcvm_pci_event_device_init(&first,&matrix,0,2,0,1)==0);
+  assert(ppcvm_pci_event_device_init(&second,&matrix,0,2,0,1)==0);
+  assert(ppcvm_pci_event_device_write32(&first,0,12,1u)==0);
+  assert(ppcvm_pci_event_device_write32(&second,0,12,2u)==0);
+  args[0].device=&first;args[0].path=path;
+  args[1].device=&second;args[1].path=path;
+  threads[0]=CreateThread(NULL,0,writer,&args[0],0,NULL);
+  threads[1]=CreateThread(NULL,0,writer,&args[1],0,NULL);
+  assert(threads[0]!=NULL && threads[1]!=NULL);
+  assert(WaitForMultipleObjects(2,threads,TRUE,INFINITE)==WAIT_OBJECT_0);
+  assert(GetExitCodeThread(threads[0],&result) && result==0u);
+  assert(GetExitCodeThread(threads[1],&result) && result==0u);
+  assert(CloseHandle(threads[0]) && CloseHandle(threads[1]));
+  f=fopen(path,"rb");assert(f!=NULL);
+  assert(fread(frame,1,sizeof(frame),f)==sizeof(frame));
+  assert(fgetc(f)==EOF);assert(fclose(f)==0);
+  assert(ppcvm_pci_event_snapshot_decode(&snapshot,frame,sizeof(frame))==0);
+  assert(snapshot.pending==1u || snapshot.pending==3u);
+  assert(remove(path)==0);
+#else
 #ifndef _WIN32
   const char *path="pci-event-concurrent.pevt";
   ppcvm_pci_bus pci;
