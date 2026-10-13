@@ -9,6 +9,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
+#include <dirent.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
@@ -107,6 +108,16 @@ int main(void) {
     assert(snapshot.pending==1u || snapshot.pending==3u);
   }
   assert(remove(path)==0);
+  /* Unique staging files must be removed after both writers finish. */
+  {
+    DIR *directory=opendir(".");
+    struct dirent *entry;
+    assert(directory!=NULL);
+    while((entry=readdir(directory))!=NULL)
+      assert(strncmp(entry->d_name,
+          "pci-event-concurrent.pevt.tmp.",30u)!=0);
+    assert(closedir(directory)==0);
+  }
 #endif
   return 0;
 }
