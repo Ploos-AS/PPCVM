@@ -66,6 +66,9 @@ int main(void) {
   assert(ppcvm_discovery_ii_active_irq_low(&controller)==1u);
   /* A failed staging open must leave the published snapshot untouched. */
   assert(ppcvm_pci_event_device_save_file(&event,".")==-1);
+  /* Missing parent directory must fail before publication. */
+  assert(ppcvm_pci_event_device_save_file(&event,
+      "missing-pevt-parent/subdir/snapshot.pevt")==-1);
   assert(ppcvm_pci_event_device_load_file(&event,path)==0);
   assert(event.pending==2u && event.enable==2u);
   assert(ppcvm_pci_event_device_reset(&event)==0);
