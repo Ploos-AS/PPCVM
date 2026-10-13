@@ -66,7 +66,6 @@ int main(void) {
   assert(snapshot.pending==1u || snapshot.pending==3u);
   assert(remove(path)==0);
 #else
-#ifndef _WIN32
   const char *path="pci-event-concurrent.pevt";
   ppcvm_pci_bus pci;
   ppcvm_pci_device config;
