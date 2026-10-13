@@ -53,6 +53,12 @@ enabled in `.github/workflows/ci.yml`.
 
 ## Status
 
-Implementation and regression test committed. Awaiting a single
-successful CI run covering Linux, Windows and PowerPC diagnostic
-jobs after the platform-guard fix (`9d4878a`).
+**M4.28 QUALIFIED** against commit `9d4878ab4`:
+GitHub Actions run [38331310135](https://github.com/Ploos-AS/PPCVM/actions/runs/38331310135)
+completed successfully with Linux build/CTest, Windows build/CTest,
+and PowerPC assembly diagnostics. The subsequent documentation-only
+commit `87888196f` was still in progress when this status was recorded.
+
+Remaining enhancements: independent Windows process stress test,
+Unicode/long path support, and stronger platform-specific durability
+documentation and fault injection.
