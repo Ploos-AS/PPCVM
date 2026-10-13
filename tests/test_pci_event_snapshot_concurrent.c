@@ -81,9 +81,11 @@ int main(int argc,char **argv) {
     HANDLE waits[2];
     unsigned i;
     assert(GetModuleFileNameA(NULL,exe,MAX_PATH)>0);
-    assert(snprintf(command,sizeof(command),"\\\"%s\\\" --child",exe)>0);
     startup.cb=sizeof(startup);
     for(i=0;i<2u;i++) {
+      int length=snprintf(command,sizeof(command),"\"%s\" --child-%c",
+          exe,i==0u?'a':'b');
+      assert(length>0 && (size_t)length<sizeof(command));
       assert(CreateProcessA(NULL,command,NULL,NULL,FALSE,0,NULL,NULL,
           &startup,&children[i])!=0);
       waits[i]=children[i].hProcess;
