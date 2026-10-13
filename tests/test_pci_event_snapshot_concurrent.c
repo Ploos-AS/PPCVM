@@ -8,6 +8,7 @@
 #include <string.h>
 #ifdef _WIN32
 #include <windows.h>
+#include <io.h>
 #else
 #include <dirent.h>
 #include <sys/wait.h>
@@ -66,6 +67,13 @@ int main(void) {
   assert(ppcvm_pci_event_snapshot_decode(&snapshot,frame,sizeof(frame))==0);
   assert(snapshot.pending==1u || snapshot.pending==3u);
   assert(remove(path)==0);
+  /* Verify no unique Windows staging file survived either writer. */
+  {
+    WIN32_FIND_DATAA entry;
+    HANDLE search=FindFirstFileA("pci-event-concurrent.pevt.tmp.*",&entry);
+    assert(search==INVALID_HANDLE_VALUE);
+    if(search!=INVALID_HANDLE_VALUE) FindClose(search);
+  }
 #else
   const char *path="pci-event-concurrent.pevt";
   ppcvm_pci_bus pci;
