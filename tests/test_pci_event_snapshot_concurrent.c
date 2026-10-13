@@ -28,7 +28,7 @@ static DWORD WINAPI writer(LPVOID opaque) {
   return 0u;
 }
 #endif
-int main(void) {
+int main(int argc,char **argv) {
 #ifdef _WIN32
   const char *path="pci-event-concurrent.pevt";
   ppcvm_pci_bus pci;
@@ -42,6 +42,8 @@ int main(void) {
   uint8_t frame[PPCVM_PCI_EVENT_WIRE_SIZE];
   ppcvm_pci_event_snapshot snapshot;
   FILE *f;
+  (void)argc;
+  (void)argv;
   ppcvm_pci_bus_init(&pci);
   ppcvm_pci_device_init(&config,0x1234,0x5681,2,0,1);
   assert(ppcvm_pci_bus_add(&pci,0,2,0,&config)==0);
@@ -52,6 +54,13 @@ int main(void) {
   assert(ppcvm_pci_event_device_init(&second,&matrix,0,2,0,1)==0);
   assert(ppcvm_pci_event_device_write32(&first,0,12,1u)==0);
   assert(ppcvm_pci_event_device_write32(&second,0,12,2u)==0);
+  /* Child mode permits a separate-process Windows writer test. */
+  if(argc==2 && strcmp(argv[1],"--child")==0) {
+    unsigned i;
+    for(i=0;i<32u;i++)
+      if(ppcvm_pci_event_device_save_file(&first,path)!=0) return 1;
+    return 0;
+  }
   args[0].device=&first;args[0].path=path;
   args[1].device=&second;args[1].path=path;
   threads[0]=CreateThread(NULL,0,writer,&args[0],0,NULL);
@@ -61,6 +70,28 @@ int main(void) {
   assert(GetExitCodeThread(threads[0],&result) && result==0u);
   assert(GetExitCodeThread(threads[1],&result) && result==0u);
   assert(CloseHandle(threads[0]) && CloseHandle(threads[1]));
+  /* Exercise two independent Windows processes with distinct PIDs. */
+  {
+    char exe[MAX_PATH], command[MAX_PATH+32];
+    STARTUPINFOA startup={0};
+    PROCESS_INFORMATION children[2]={{0},{0}};
+    HANDLE waits[2];
+    unsigned i;
+    assert(GetModuleFileNameA(NULL,exe,MAX_PATH)>0);
+    assert(snprintf(command,sizeof(command),"\\\"%s\\\" --child",exe)>0);
+    startup.cb=sizeof(startup);
+    for(i=0;i<2u;i++) {
+      assert(CreateProcessA(NULL,command,NULL,NULL,FALSE,0,NULL,NULL,
+          &startup,&children[i])!=0);
+      waits[i]=children[i].hProcess;
+    }
+    assert(WaitForMultipleObjects(2,waits,TRUE,INFINITE)==WAIT_OBJECT_0);
+    for(i=0;i<2u;i++) {
+      assert(GetExitCodeProcess(children[i].hProcess,&result) && result==0u);
+      assert(CloseHandle(children[i].hThread));
+      assert(CloseHandle(children[i].hProcess));
+    }
+  }
   f=fopen(path,"rb");assert(f!=NULL);
   assert(fread(frame,1,sizeof(frame),f)==sizeof(frame));
   assert(fgetc(f)==EOF);assert(fclose(f)==0);
