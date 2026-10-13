@@ -71,5 +71,13 @@ int main(void) {
   assert(ppcvm_pci_event_device_reset(&event)==0);
   assert(ppcvm_discovery_ii_active_irq_low(&controller)==0u);
   assert(remove(path)==0);
+#ifdef _WIN32
+  /* Windows must not leave the historical fixed staging filename. */
+  {
+    FILE *stale=fopen("pci-event-snapshot-test.pevt.tmp","rb");
+    assert(stale==NULL);
+    if(stale) fclose(stale);
+  }
+#endif
   return 0;
 }
