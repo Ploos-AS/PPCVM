@@ -110,8 +110,13 @@ int main(int argc,char **argv) {
   {
     WIN32_FIND_DATAA entry;
     HANDLE search=FindFirstFileA("pci-event-concurrent.pevt.tmp.*",&entry);
-    assert(search==INVALID_HANDLE_VALUE);
-    if(search!=INVALID_HANDLE_VALUE) FindClose(search);
+    if(search!=INVALID_HANDLE_VALUE) {
+      FindClose(search);
+      assert(!"Windows snapshot staging file left behind");
+    } else {
+      DWORD error=GetLastError();
+      assert(error==ERROR_FILE_NOT_FOUND);
+    }
   }
 #else
   const char *path="pci-event-concurrent.pevt";
