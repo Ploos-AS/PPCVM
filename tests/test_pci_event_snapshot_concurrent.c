@@ -80,7 +80,10 @@ int main(int argc,char **argv) {
     PROCESS_INFORMATION children[2]={{0},{0}};
     HANDLE waits[2];
     unsigned i;
-    assert(GetModuleFileNameA(NULL,exe,MAX_PATH)>0);
+    {
+      DWORD length=GetModuleFileNameA(NULL,exe,MAX_PATH);
+      assert(length>0 && length<MAX_PATH);
+    }
     startup.cb=sizeof(startup);
     for(i=0;i<2u;i++) {
       int length=snprintf(command,sizeof(command),"\"%s\" --child-%c",
