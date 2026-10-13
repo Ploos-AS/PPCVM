@@ -55,10 +55,13 @@ int main(int argc,char **argv) {
   assert(ppcvm_pci_event_device_write32(&first,0,12,1u)==0);
   assert(ppcvm_pci_event_device_write32(&second,0,12,2u)==0);
   /* Child mode permits a separate-process Windows writer test. */
-  if(argc==2 && strcmp(argv[1],"--child")==0) {
+  if(argc==2 && (strcmp(argv[1],"--child-a")==0 ||
+      strcmp(argv[1],"--child-b")==0)) {
+    ppcvm_pci_event_device *source=strcmp(argv[1],"--child-b")==0?
+        &second:&first;
     unsigned i;
     for(i=0;i<32u;i++)
-      if(ppcvm_pci_event_device_save_file(&first,path)!=0) return 1;
+      if(ppcvm_pci_event_device_save_file(source,path)!=0) return 1;
     return 0;
   }
   args[0].device=&first;args[0].path=path;
