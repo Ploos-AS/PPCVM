@@ -105,6 +105,7 @@ int main(int argc,char **argv) {
   assert(fgetc(f)==EOF);assert(fclose(f)==0);
   assert(ppcvm_pci_event_snapshot_decode(&snapshot,frame,sizeof(frame))==0);
   assert(snapshot.pending==1u || snapshot.pending==2u);
+  assert(snapshot.enable==0u);
   assert(remove(path)==0);
   /* Verify no unique Windows staging file survived either writer. */
   {
