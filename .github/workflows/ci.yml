@@ -25,7 +25,7 @@ jobs:
       - name: Test
         run: ctest --test-dir build -C Debug --output-on-failure
 
-  powerpc-assembly:
+  powerpc-guest-execution:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
