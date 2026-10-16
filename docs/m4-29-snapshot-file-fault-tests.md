@@ -32,4 +32,17 @@ M4.28 qualified by GitHub Actions run 38331310135;
 documentation qualification commit cb65a1668 passed run 38331407434.
 
 ## Status
-Specification created; implementation pending.
+Implementation in progress. CI run 38966746005 passed Linux, Windows
+and PowerPC on commit 18013c80a. Windows concurrent writers are
+currently limited to 8 saves each for diagnosis: the 32-save variant
+timed out at 90 seconds in run 38966268091. The successful 8-save
+run is a baseline, not proof that higher-load concurrency is fixed.
+
+Covered: invalid/missing input, staging path failure, snapshot
+integrity, temporary-file cleanup, concurrent POSIX processes,
+concurrent Windows threads and independent Windows processes.
+
+Open: diagnose Windows contention at higher iteration counts;
+audit and implement Unicode-safe Windows paths; distinguish
+pre-publication from post-publication failures in API documentation.
+Do not mark M4.29 qualified until these are resolved and CI passes.
