@@ -75,6 +75,19 @@ int main(void) {
   assert(m.cpu.pc==UINT32_C(0x1004));
   assert(m.cpu.gpr[3]==UINT32_C(0x2000));
   assert(m.cpu.gpr[4]==PPCVM_PEGASOS2_BOOT_MAGIC);
+  /* Read two fields from a structured diagnostic boot record:
+   * magic at +0 and guest RAM bytes at +4. */
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x2004),
+      UINT32_C(65536))==PPCVM_BUS_OK);
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1000),
+      UINT32_C(0x80830000))==PPCVM_BUS_OK); /* lwz r4,0(r3) */
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1004),
+      UINT32_C(0x80a30004))==PPCVM_BUS_OK); /* lwz r5,4(r3) */
+  assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,4u,0)==PPCVM_OK);
+  assert(m.cpu.gpr[4]==PPCVM_PEGASOS2_BOOT_MAGIC);
+  assert(m.cpu.gpr[5]==UINT32_C(65536));
+  assert(m.cpu.pc==UINT32_C(0x1008));
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
