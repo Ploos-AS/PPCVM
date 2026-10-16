@@ -33,10 +33,11 @@ documentation qualification commit cb65a1668 passed run 38331407434.
 
 ## Status
 Implementation in progress. CI run 38966746005 passed Linux, Windows
-and PowerPC on commit 18013c80a. Windows concurrent writers are
-currently limited to 8 saves each for diagnosis: the 32-save variant
-timed out at 90 seconds in run 38966268091. The successful 8-save
-run is a baseline, not proof that higher-load concurrency is fixed.
+and PowerPC on commit 18013c80a. Windows concurrent writers passed with 8 saves each in run 38967112923,
+including bounded retries for transient Windows sharing/lock errors.
+The 32-save variant timed out at 90 seconds in run 38966268091 before
+those retries were introduced. A 16-save stress run is pending for
+commit f86da21bb; do not infer its outcome from the 8-save baseline.
 
 Covered: invalid/missing input, staging path failure, snapshot
 integrity, temporary-file cleanup, concurrent POSIX processes,
