@@ -42,8 +42,6 @@ int main(int argc,char **argv) {
   uint8_t frame[PPCVM_PCI_EVENT_WIRE_SIZE];
   ppcvm_pci_event_snapshot snapshot;
   FILE *f;
-  (void)argc;
-  (void)argv;
   ppcvm_pci_bus_init(&pci);
   ppcvm_pci_device_init(&config,0x1234,0x5681,2,0,1);
   assert(ppcvm_pci_bus_add(&pci,0,2,0,&config)==0);
