@@ -75,6 +75,17 @@ int main(int argc,char **argv) {
   assert(GetExitCodeThread(threads[0],&result) && result==0u);
   assert(GetExitCodeThread(threads[1],&result) && result==0u);
   assert(CloseHandle(threads[0]) && CloseHandle(threads[1]));
+  /* Verify the thread race before starting the separate-process race. */
+  {
+    FILE *thread_file=fopen(path,"rb");
+    assert(thread_file!=NULL);
+    assert(fread(frame,1,sizeof(frame),thread_file)==sizeof(frame));
+    assert(fgetc(thread_file)==EOF);
+    assert(fclose(thread_file)==0);
+    assert(ppcvm_pci_event_snapshot_decode(&snapshot,frame,sizeof(frame))==0);
+    assert((snapshot.pending==1u && snapshot.enable==1u) ||
+        (snapshot.pending==2u && snapshot.enable==2u));
+  }
   /* Exercise two independent Windows processes with distinct PIDs. */
   {
     char exe[MAX_PATH], command[MAX_PATH+32];
