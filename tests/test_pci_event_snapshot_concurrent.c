@@ -22,9 +22,19 @@ typedef struct {
 static DWORD WINAPI writer(LPVOID opaque) {
   writer_args *args=(writer_args *)opaque;
   unsigned i;
-  for(i=0;i<16u;i++)
-    if(ppcvm_pci_event_device_save_file(args->device,args->path)!=0)
+  for(i=0;i<16u;i++) {
+    if(ppcvm_pci_event_device_save_file(args->device,args->path)!=0) {
+      fprintf(stderr,"Windows thread writer failed at save %u (winerr=%lu)\\n",
+          i+1u,(unsigned long)GetLastError());
+      fflush(stderr);
       return 1u;
+    }
+    if((i+1u)%4u==0u) {
+      fprintf(stderr,"Windows thread writer %p completed %u saves\\n",
+          (void *)args->device,i+1u);
+      fflush(stderr);
+    }
+  }
   return 0u;
 }
 #endif
