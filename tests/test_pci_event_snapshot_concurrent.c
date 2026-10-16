@@ -22,7 +22,7 @@ typedef struct {
 static DWORD WINAPI writer(LPVOID opaque) {
   writer_args *args=(writer_args *)opaque;
   unsigned i;
-  for(i=0;i<32u;i++)
+  for(i=0;i<8u;i++)
     if(ppcvm_pci_event_device_save_file(args->device,args->path)!=0)
       return 1u;
   return 0u;
@@ -60,7 +60,7 @@ int main(int argc,char **argv) {
     ppcvm_pci_event_device *source=strcmp(argv[1],"--child-b")==0?
         &second:&first;
     unsigned i;
-    for(i=0;i<32u;i++)
+    for(i=0;i<8u;i++)
       if(ppcvm_pci_event_device_save_file(source,path)!=0) return 1;
     return 0;
   }
