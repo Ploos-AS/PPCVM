@@ -88,6 +88,10 @@ ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *m, uint32_t entry) {
   m->cpu.msr=UINT32_C(0x40); /* high exception prefix */
   return PPCVM_OK;
 }
+ppcvm_result ppcvm_pegasos2_boot_reset_vector(ppcvm_pegasos2 *m) {
+  /* Reuse the validated ROM boot path; leave guest RAM untouched. */
+  return ppcvm_pegasos2_boot_high_rom(m,PPCVM_PEGASOS2_RESET_VECTOR);
+}
 ppcvm_result ppcvm_pegasos2_cold_boot_high_rom(ppcvm_pegasos2 *m, uint32_t entry) {
   uint32_t instruction=0;
   if (!m || (entry & 3u) || entry < UINT32_C(0xfff00000) ||
