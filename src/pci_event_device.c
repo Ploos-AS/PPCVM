@@ -117,8 +117,26 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
       written==(DWORD)sizeof(bytes);
   if(ok && !FlushFileBuffers(handle)) ok=0;
   if(!CloseHandle(handle)) ok=0;
-  if(ok && !MoveFileExA(temp,path,MOVEFILE_REPLACE_EXISTING |
-      MOVEFILE_WRITE_THROUGH)) ok=0;
+  if(ok) {
+    unsigned publish_attempt;
+    int published=0;
+    for(publish_attempt=0;publish_attempt<20u;publish_attempt++) {
+      if(MoveFileExA(temp,path,MOVEFILE_REPLACE_EXISTING |
+          MOVEFILE_WRITE_THROUGH)) {
+        published=1;
+        break;
+      }
+      /* Another process may briefly hold the destination open.
+       * Only retry transient sharing/lock errors, never path errors. */
+      {
+        DWORD error=GetLastError();
+        if(error!=ERROR_SHARING_VIOLATION && error!=ERROR_LOCK_VIOLATION)
+          break;
+      }
+      Sleep(10u);
+    }
+    if(!published) ok=0;
+  }
   if(!ok) DeleteFileA(temp);
   free(temp);
   return ok?0:-1;
