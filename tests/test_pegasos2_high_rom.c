@@ -32,6 +32,19 @@ int main(void) {
   assert(ppcvm_pegasos2_step(&m)==PPCVM_OK);
   assert(m.cpu.gpr[3]==42u);
   assert(m.cpu.pc==PPCVM_PEGASOS2_RESET_VECTOR+4u);
+  /* Minimal firmware handoff: ROM branches to a guest entry in RAM.
+   * This proves instruction fetch crosses the ROM/RAM bus boundary;
+   * it does not yet implement Open Firmware or Linux boot parameters. */
+  rom[0x100]=0x48; rom[0x101]=0x00;
+  rom[0x102]=0x10; rom[0x103]=0x02; /* b 0x1000, absolute */
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1000),
+      UINT32_C(0x38600063))==PPCVM_BUS_OK); /* addi r3,r0,99 */
+  assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
+  assert(ppcvm_pegasos2_step(&m)==PPCVM_OK);
+  assert(m.cpu.pc==UINT32_C(0x1000));
+  assert(ppcvm_pegasos2_step(&m)==PPCVM_OK);
+  assert(m.cpu.gpr[3]==99u);
+  assert(m.cpu.pc==UINT32_C(0x1004));
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
