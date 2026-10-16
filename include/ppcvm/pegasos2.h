@@ -47,6 +47,10 @@ ppcvm_bus_result ppcvm_pegasos2_map_discovery_ii(ppcvm_pegasos2 *machine,
 void ppcvm_pegasos2_reset(ppcvm_pegasos2 *machine);
 /* Diagnostic cold reset: clear RAM and MMU configuration, preserve bus/ROM maps. */
 void ppcvm_pegasos2_cold_reset(ppcvm_pegasos2 *machine);
+/* Diagnostic reset-vector entry (high prefix + 0x100). Validates ROM
+   before resetting; not a complete G4 hardware power-on model. */
+#define PPCVM_PEGASOS2_RESET_VECTOR UINT32_C(0xfff00100)
+ppcvm_result ppcvm_pegasos2_boot_reset_vector(ppcvm_pegasos2 *machine);
 /* Start at a mapped high-ROM instruction address; reset CPU only. */
 ppcvm_result ppcvm_pegasos2_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t entry);
 /* Validate ROM entry, then cold-reset machine and begin execution there. */
