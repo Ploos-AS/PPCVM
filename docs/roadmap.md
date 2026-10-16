@@ -73,3 +73,39 @@ Machine priority controls implementation order, not guaranteed guest OS support.
 | P1 | NetBSD/macppc | compatible Power Mac profile |
 
 No OS qualification is asserted until its boot and runtime tests pass.
+
+## Immediate execution priority — Pegasos II Linux handoff
+
+The near-term goal is a bootable guest, not additional snapshot features.
+Treat the existing cross-built PPC ELF diagnostics as instruction/device
+execution tests, **not** proof of firmware or OS boot compatibility.
+
+1. Establish a deterministic Pegasos II reset-to-firmware entry path:
+   initial CPU state, memory layout, exception vectors, serial output,
+   and a reproducible trace of the first guest instructions.
+2. Define an explicit firmware interface and acquisition policy.
+   Never vendor proprietary Pegasos firmware or guest OS images.
+3. Implement and test the Linux handoff contract: boot parameters,
+   memory description, device tree or firmware-provided machine
+   discovery as required by the selected kernel, and console.
+4. Add a small freestanding PowerPC boot probe that exercises the
+   *same* handoff path intended for Linux; distinguish this from
+   directly loading a diagnostic ELF at a fixed address.
+5. Run a legally redistributable Linux PPC kernel to its earliest
+   serial boot message, then to userspace; capture deterministic
+   boot logs and CI exit criteria.
+6. Reuse the qualified machine/firmware path for MorphOS and
+   AmigaOS 4 compatibility investigations, without implying either
+   OS boots before demonstrated.
+
+### CI evidence tiers
+- **Host build/test:** native Linux and Windows builds and unit tests.
+- **Guest execution:** cross-built PowerPC ELF code actually executed
+  by PPCVM and checked for expected results.
+- **Firmware/handoff:** CPU reset through a documented boot contract.
+- **OS boot:** a real guest kernel reaches identifiable boot stages,
+  then userspace, with logs and reproducible test commands.
+
+Report each tier separately. A green guest-execution job must never
+be presented as a successful OS boot. M4.29 snapshot work remains
+a bounded stability track and does not gate initial Linux handoff.
