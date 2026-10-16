@@ -69,7 +69,15 @@ int main(int argc,char **argv) {
   threads[0]=CreateThread(NULL,0,writer,&args[0],0,NULL);
   threads[1]=CreateThread(NULL,0,writer,&args[1],0,NULL);
   assert(threads[0]!=NULL && threads[1]!=NULL);
-  assert(WaitForMultipleObjects(2,threads,TRUE,60000u)==WAIT_OBJECT_0);
+  {
+    DWORD wait_result=WaitForMultipleObjects(2,threads,TRUE,60000u);
+    if(wait_result!=WAIT_OBJECT_0) {
+      fprintf(stderr,"thread writer wait failed: result=%lu, winerr=%lu\\n",
+          (unsigned long)wait_result,(unsigned long)GetLastError());
+      fflush(stderr);
+      return 2;
+    }
+  }
   assert(GetExitCodeThread(threads[0],&result) && result==0u);
   assert(GetExitCodeThread(threads[1],&result) && result==0u);
   assert(CloseHandle(threads[0]) && CloseHandle(threads[1]));
