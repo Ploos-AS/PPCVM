@@ -69,7 +69,7 @@ int main(int argc,char **argv) {
   threads[0]=CreateThread(NULL,0,writer,&args[0],0,NULL);
   threads[1]=CreateThread(NULL,0,writer,&args[1],0,NULL);
   assert(threads[0]!=NULL && threads[1]!=NULL);
-  assert(WaitForMultipleObjects(2,threads,TRUE,INFINITE)==WAIT_OBJECT_0);
+  assert(WaitForMultipleObjects(2,threads,TRUE,60000u)==WAIT_OBJECT_0);
   assert(GetExitCodeThread(threads[0],&result) && result==0u);
   assert(GetExitCodeThread(threads[1],&result) && result==0u);
   assert(CloseHandle(threads[0]) && CloseHandle(threads[1]));
@@ -104,7 +104,7 @@ int main(int argc,char **argv) {
           &startup,&children[i])!=0);
       waits[i]=children[i].hProcess;
     }
-    assert(WaitForMultipleObjects(2,waits,TRUE,INFINITE)==WAIT_OBJECT_0);
+    assert(WaitForMultipleObjects(2,waits,TRUE,60000u)==WAIT_OBJECT_0);
     for(i=0;i<2u;i++) {
       assert(GetExitCodeProcess(children[i].hProcess,&result) && result==0u);
       assert(CloseHandle(children[i].hThread));
