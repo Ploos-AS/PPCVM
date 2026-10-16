@@ -60,6 +60,21 @@ int main(void) {
   assert(m.cpu.pc==UINT32_C(0x1004));
   assert(m.cpu.gpr[3]==7u && m.cpu.gpr[4]==9u);
   assert(m.cpu.gpr[5]==16u);
+  /* Diagnostic boot-info handoff: ROM passes a RAM pointer in r3;
+   * guest code loads a big-endian word from the pointed-to record. */
+  rom[0x100]=0x38; rom[0x101]=0x60;
+  rom[0x102]=0x20; rom[0x103]=0x00; /* addi r3,r0,0x2000 */
+  rom[0x104]=0x48; rom[0x105]=0x00;
+  rom[0x106]=0x10; rom[0x107]=0x02; /* b 0x1000, absolute */
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x2000),
+      UINT32_C(0x50564331))==PPCVM_BUS_OK); /* PVC1 marker */
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1000),
+      UINT32_C(0x80830000))==PPCVM_BUS_OK); /* lwz r4,0(r3) */
+  assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,3u,0)==PPCVM_OK);
+  assert(m.cpu.pc==UINT32_C(0x1004));
+  assert(m.cpu.gpr[3]==UINT32_C(0x2000));
+  assert(m.cpu.gpr[4]==PPCVM_PEGASOS2_BOOT_MAGIC);
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
