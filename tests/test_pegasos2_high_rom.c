@@ -45,6 +45,21 @@ int main(void) {
   assert(ppcvm_pegasos2_step(&m)==PPCVM_OK);
   assert(m.cpu.gpr[3]==99u);
   assert(m.cpu.pc==UINT32_C(0x1004));
+  /* Firmware bootstrap initializes diagnostic argument registers before
+   * branching to RAM. This is deliberately not an Open Firmware ABI. */
+  rom[0x100]=0x38; rom[0x101]=0x60;
+  rom[0x102]=0x00; rom[0x103]=0x07; /* addi r3,r0,7 */
+  rom[0x104]=0x38; rom[0x105]=0x80;
+  rom[0x106]=0x00; rom[0x107]=0x09; /* addi r4,r0,9 */
+  rom[0x108]=0x48; rom[0x109]=0x00;
+  rom[0x10a]=0x10; rom[0x10b]=0x02; /* b 0x1000, absolute */
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1000),
+      UINT32_C(0x7ca32214))==PPCVM_BUS_OK); /* add r5,r3,r4 */
+  assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,4u,0)==PPCVM_OK);
+  assert(m.cpu.pc==UINT32_C(0x1004));
+  assert(m.cpu.gpr[3]==7u && m.cpu.gpr[4]==9u);
+  assert(m.cpu.gpr[5]==16u);
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
