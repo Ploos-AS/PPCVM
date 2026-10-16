@@ -21,6 +21,17 @@ int main(void) {
   assert(ppcvm_pegasos2_step(&m)==PPCVM_OK);
   assert(m.cpu.pc==UINT32_C(0x100));
   assert(m.cpu.msr==UINT32_C(0x40));
+  /* Reset-vector boot must start at the high prefix, not at RAM zero. */
+  rom[0x100]=0x38; rom[0x101]=0x60;
+  rom[0x102]=0x00; rom[0x103]=0x2a; /* addi r3,r0,42 */
+  m.cpu.gpr[3]=99u;
+  assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
+  assert(m.cpu.pc==PPCVM_PEGASOS2_RESET_VECTOR);
+  assert(m.cpu.msr==UINT32_C(0x40));
+  assert(m.cpu.gpr[3]==0u);
+  assert(ppcvm_pegasos2_step(&m)==PPCVM_OK);
+  assert(m.cpu.gpr[3]==42u);
+  assert(m.cpu.pc==PPCVM_PEGASOS2_RESET_VECTOR+4u);
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
