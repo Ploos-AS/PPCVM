@@ -107,12 +107,12 @@ int main(void) {
   assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x2000),
       PPCVM_PEGASOS2_BOOT_MAGIC)==PPCVM_BUS_OK);
   assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
-  assert(ppcvm_pegasos2_run(&m,8u,0)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,9u,0)==PPCVM_OK);
   assert(m.cpu.gpr[6]==UINT32_C(65536));
   assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x2000),
       UINT32_C(0x12345678))==PPCVM_BUS_OK);
   assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
-  assert(ppcvm_pegasos2_run(&m,7u,0)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,8u,0)==PPCVM_OK);
   assert(m.cpu.gpr[6]==0u);
   assert(m.cpu.pc==UINT32_C(0x101c));
   /* Native register comparison is now available to the boot probe. */
