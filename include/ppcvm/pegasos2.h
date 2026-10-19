@@ -60,11 +60,14 @@ ppcvm_result ppcvm_pegasos2_cold_boot_high_rom(ppcvm_pegasos2 *machine, uint32_t
 #define PPCVM_PEGASOS2_BOOT_MAGIC UINT32_C(0x50564331)
 #define PPCVM_PEGASOS2_BOOT_INFO_SIZE UINT32_C(16)
 /* PVC1 diagnostic record offsets (big-endian words in guest RAM).
-   This is not an Open Firmware or Linux boot protocol. */
+   This is a private test ABI, not Open Firmware or Linux boot protocol. */
 #define PPCVM_PEGASOS2_BOOT_INFO_MAGIC_OFFSET UINT32_C(0)
-#define PPCVM_PEGASOS2_BOOT_INFO_RAM_BYTES_OFFSET UINT32_C(4)
-#define PPCVM_PEGASOS2_BOOT_INFO_ENTRY_OFFSET UINT32_C(8)
-#define PPCVM_PEGASOS2_BOOT_INFO_VERSION_OFFSET UINT32_C(12)
+#define PPCVM_PEGASOS2_BOOT_INFO_SIZE_OFFSET UINT32_C(4)
+#define PPCVM_PEGASOS2_BOOT_INFO_RAM_BYTES_OFFSET UINT32_C(8)
+#define PPCVM_PEGASOS2_BOOT_INFO_ENTRY_OFFSET UINT32_C(12)
+#define PPCVM_PEGASOS2_BOOT_INFO_V2_VERSION_OFFSET UINT32_C(16)
+#define PPCVM_PEGASOS2_BOOT_INFO_V2_FLAGS_OFFSET UINT32_C(20)
+#define PPCVM_PEGASOS2_BOOT_INFO_V2_SERVICE_OFFSET UINT32_C(24)
 /* Extended PVC1 record, opt-in; first 16 bytes retain v1 layout. */
 #define PPCVM_PEGASOS2_BOOT_INFO_V2_SIZE UINT32_C(32)
 ppcvm_result ppcvm_pegasos2_boot_elf32_abi_v2(ppcvm_pegasos2 *machine,
