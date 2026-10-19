@@ -160,6 +160,24 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
         }
         break;
       }
+      if (xo==0u || xo==32u) { /* cmpw / cmplw, 32-bit register forms */
+        uint32_t bf=(insn>>23)&7u;
+        uint32_t l=(insn>>21)&3u;
+        uint32_t rb=(insn>>11)&31u;
+        if (l!=0u || (insn&1u)!=0u) return PPCVM_UNSUPPORTED;
+        uint32_t a=cpu->gpr[ra], b=cpu->gpr[rb];
+        uint32_t bits;
+        if (xo==0u) {
+          int32_t sa=(int32_t)a, sb=(int32_t)b;
+          bits=sa<sb ? 8u : (sa>sb ? 4u : 2u);
+        } else {
+          bits=a<b ? 8u : (a>b ? 4u : 2u);
+        }
+        bits|=(cpu->xer>>31)&1u;
+        uint32_t shift=28u-4u*bf;
+        cpu->cr=(cpu->cr & ~(15u<<shift)) | (bits<<shift);
+        break;
+      }
       if (xo==266u || xo==40u || xo==444u || xo==316u || xo==28u) {
         /* X-form arithmetic and logic. These variants do not set XER overflow. */
         uint32_t rb=(insn>>11)&31u;
