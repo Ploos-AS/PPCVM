@@ -18,5 +18,18 @@ int main(void) {
   assert(ppcvm_cpu_step(&c,X(5,3,4,266,1))==PPCVM_OK && c.gpr[5]==0 && (c.cr>>28)==3u);
   uint32_t pc=c.pc;
   assert(ppcvm_cpu_step(&c,X(5,3,4,266,0)|0x400u)==PPCVM_UNSUPPORTED && c.pc==pc);
+  /* Signed versus unsigned comparisons, CR field selection and SO. */
+  ppcvm_cpu_reset(&c);
+  c.gpr[3]=UINT32_MAX; c.gpr[4]=1u;
+  c.xer=UINT32_C(0x80000000);
+  assert(ppcvm_cpu_step(&c,X(0,3,4,0,0))==PPCVM_OK);
+  assert((c.cr>>28)==9u); /* -1 < 1, SO set */
+  assert(ppcvm_cpu_step(&c,X(0,3,4,32,0))==PPCVM_OK);
+  assert((c.cr>>28)==5u); /* UINT32_MAX > 1, SO set */
+  assert(ppcvm_cpu_step(&c,X(2u<<2,4,4,0,0))==PPCVM_OK);
+  assert(((c.cr>>20)&15u)==3u); /* CR2 equal, SO set */
+  uint32_t before=c.pc;
+  assert(ppcvm_cpu_step(&c,X(0,3,4,0,0)|UINT32_C(0x00200000))==PPCVM_UNSUPPORTED);
+  assert(c.pc==before); /* 64-bit comparison unsupported */
   return 0;
 }
