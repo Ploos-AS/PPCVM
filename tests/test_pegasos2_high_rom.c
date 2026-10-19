@@ -97,22 +97,24 @@ int main(void) {
   assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1008),
       UINT32_C(0x60a54331))==PPCVM_BUS_OK); /* ori r5,r5,0x4331 */
   assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x100c),
-      UINT32_C(0x7c042800))==PPCVM_BUS_OK); /* cmpw r4,r5 */
+      UINT32_C(0x7ce42a78))==PPCVM_BUS_OK); /* xor r7,r4,r5 */
   assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1010),
-      UINT32_C(0x40820008))==PPCVM_BUS_OK); /* bne +8 */
+      UINT32_C(0x2c070000))==PPCVM_BUS_OK); /* cmpwi r7,0 */
   assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1014),
+      UINT32_C(0x40820008))==PPCVM_BUS_OK); /* bne +8 */
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x1018),
       UINT32_C(0x80c30004))==PPCVM_BUS_OK); /* lwz r6,4(r3) */
   assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x2000),
       PPCVM_PEGASOS2_BOOT_MAGIC)==PPCVM_BUS_OK);
   assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
-  assert(ppcvm_pegasos2_run(&m,8u,0)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,9u,0)==PPCVM_OK);
   assert(m.cpu.gpr[6]==UINT32_C(65536));
   assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x2000),
       UINT32_C(0x12345678))==PPCVM_BUS_OK);
   assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
-  assert(ppcvm_pegasos2_run(&m,7u,0)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,8u,0)==PPCVM_OK);
   assert(m.cpu.gpr[6]==0u);
-  assert(m.cpu.pc==UINT32_C(0x1018));
+  assert(m.cpu.pc==UINT32_C(0x101c));
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
