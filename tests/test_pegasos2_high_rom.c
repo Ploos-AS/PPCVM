@@ -127,6 +127,13 @@ int main(void) {
   assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
   assert(ppcvm_pegasos2_run(&m,8u,0)==PPCVM_OK);
   assert(m.cpu.gpr[6]==UINT32_C(65536));
+  /* The native cmpw path must reject a corrupted marker as well. */
+  assert(ppcvm_bus_write32be(&m.bus,UINT32_C(0x2000),
+      UINT32_C(0x12345678))==PPCVM_BUS_OK);
+  assert(ppcvm_pegasos2_boot_reset_vector(&m)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,7u,0)==PPCVM_OK);
+  assert(m.cpu.gpr[6]==0u);
+  assert(m.cpu.pc==UINT32_C(0x101c));
   ppcvm_pegasos2_destroy(&m);
   return 0;
 }
