@@ -32,6 +32,14 @@ int main(void){
   assert(m.cpu.gpr[8]==UINT32_C(0x100));
   assert(m.cpu.gpr[9]==2u && m.cpu.gpr[10]==3u);
   assert(m.cpu.pc==UINT32_C(0x110));
+  /* Re-run the same ELF with a deliberately incompatible ABI version.
+   * Guest code must observe the changed record, not a host-side constant. */
+  assert(ppcvm_memory_write32be(&m.ram,
+      UINT32_C(0x200)+PPCVM_PEGASOS2_BOOT_INFO_V2_VERSION_OFFSET,
+      3u)==PPCVM_MEM_OK);
+  m.cpu.pc=UINT32_C(0x100);
+  assert(ppcvm_pegasos2_run(&m,4u,0)==PPCVM_OK);
+  assert(m.cpu.gpr[9]==3u && m.cpu.gpr[10]==4u);
   m.cpu.pc=0x44;
   /* v2's extra 16 bytes must not overlap the executable's BSS. */
   w32(elf+64,0x210);
