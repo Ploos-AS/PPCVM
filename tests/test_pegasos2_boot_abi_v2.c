@@ -13,12 +13,14 @@ int main(void){
   w32(elf+24,0x100);w32(elf+28,52);
   w16(elf+40,52);w16(elf+42,32);w16(elf+44,1);
   w32(elf+52,1);w32(elf+56,96);w32(elf+64,0x100);
-  w32(elf+68,16);w32(elf+72,16);w32(elf+76,5);
+  w32(elf+68,24);w32(elf+72,24);w32(elf+76,5);
   /* ELF guest reads the actual ABI v2 record using r4 from the loader. */
   w32(elf+96,0x80e40008);  /* lwz r7,8(r4): RAM bytes */
   w32(elf+100,0x8104000c); /* lwz r8,12(r4): ELF entry */
   w32(elf+104,0x81240010); /* lwz r9,16(r4): ABI version */
-  w32(elf+108,0x39490001); /* addi r10,r9,1 */
+  w32(elf+108,0x2c090002); /* cmpwi r9,2 */
+  w32(elf+112,0x40820008); /* bne +8: skip compatible marker */
+  w32(elf+116,0x39400001); /* addi r10,r0,1: compatible */
   assert(ppcvm_pegasos2_boot_elf32_abi_v2(&m,elf,sizeof(elf),0x200)==PPCVM_OK);
   uint32_t word=0;
   assert(ppcvm_memory_read32be(&m.ram,0x200,&word)==PPCVM_MEM_OK && word==PPCVM_PEGASOS2_BOOT_MAGIC);
@@ -27,11 +29,11 @@ int main(void){
   assert(ppcvm_memory_read32be(&m.ram,0x218,&word)==PPCVM_MEM_OK && word==0);
   assert(m.cpu.pc==UINT32_C(0x100));
   assert(m.cpu.gpr[4]==UINT32_C(0x200));
-  assert(ppcvm_pegasos2_run(&m,4u,0)==PPCVM_OK);
+  assert(ppcvm_pegasos2_run(&m,6u,0)==PPCVM_OK);
   assert(m.cpu.gpr[7]==UINT32_C(65536));
   assert(m.cpu.gpr[8]==UINT32_C(0x100));
-  assert(m.cpu.gpr[9]==2u && m.cpu.gpr[10]==3u);
-  assert(m.cpu.pc==UINT32_C(0x110));
+  assert(m.cpu.gpr[9]==2u && m.cpu.gpr[10]==1u);
+  assert(m.cpu.pc==UINT32_C(0x118));
   /* Re-run the same ELF with a deliberately incompatible ABI version.
    * Guest code must observe the changed record, not a host-side constant. */
   assert(ppcvm_memory_write32be(&m.ram,
