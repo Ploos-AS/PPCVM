@@ -40,8 +40,10 @@ int main(void){
       UINT32_C(0x200)+PPCVM_PEGASOS2_BOOT_INFO_V2_VERSION_OFFSET,
       3u)==PPCVM_MEM_OK);
   m.cpu.pc=UINT32_C(0x100);
-  assert(ppcvm_pegasos2_run(&m,4u,0)==PPCVM_OK);
-  assert(m.cpu.gpr[9]==3u && m.cpu.gpr[10]==4u);
+  m.cpu.gpr[10]=0u;
+  assert(ppcvm_pegasos2_run(&m,5u,0)==PPCVM_OK);
+  assert(m.cpu.gpr[9]==3u && m.cpu.gpr[10]==0u);
+  assert(m.cpu.pc==UINT32_C(0x118));
   m.cpu.pc=0x44;
   /* v2's extra 16 bytes must not overlap the executable's BSS. */
   w32(elf+64,0x210);
