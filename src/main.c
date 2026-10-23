@@ -71,11 +71,11 @@ int main(int argc, char **argv) {
     for (size_t i = 0; i < steps; ++i) {
       uint32_t pc = machine.cpu.pc, opcode = 0;
       ppcvm_mem_result fetch = ppcvm_memory_read32be(&machine.ram, pc, &opcode);
-      fprintf(stderr, "step=%zu pc=0x%08" PRIx32 " opcode=%s0x%08" PRIx32 "\\n",
+      fprintf(stderr, "step=%zu pc=0x%08" PRIx32 " opcode=%s0x%08" PRIx32 "\n",
               i, pc, fetch == PPCVM_MEM_OK ? "" : "unmapped:", opcode);
       result = ppcvm_pegasos2_step(&machine);
       if (result != PPCVM_OK) {
-        fprintf(stderr, "stop: step=%zu pc=0x%08" PRIx32 " result=%d\\n",
+        fprintf(stderr, "stop: step=%zu pc=0x%08" PRIx32 " result=%d\n",
                 i, pc, (int)result);
         break;
       }
