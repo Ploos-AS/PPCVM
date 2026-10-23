@@ -6,7 +6,7 @@
 #include <string.h>
 
 static int usage(const char *program) {
-  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace]\n", program);
+  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace] [--trace-limit N]\n", program);
   fprintf(stderr, "Experimental PVC1 guest runner; not an Open Firmware or Linux boot environment.\n");
   return 2;
 }
@@ -22,7 +22,7 @@ static int parse_size(const char *s, size_t *out) {
 }
 int main(int argc, char **argv) {
   const char *path = NULL;
-  size_t steps = 1000, ram_mib = 64, executed = 0;
+  size_t steps = 1000, ram_mib = 64, executed = 0, trace_limit = 1000;
   int abi_v2 = 0, trace = 0, rc = 1;
   FILE *fp = NULL;
   uint8_t *image = NULL;
@@ -39,6 +39,9 @@ int main(int argc, char **argv) {
           ram_mib > UINT32_MAX / (1024u*1024u)) return usage(argv[0]);
     } else if (!strcmp(argv[i], "--abi-v2")) abi_v2 = 1;
     else if (!strcmp(argv[i], "--trace")) trace = 1;
+    else if (!strcmp(argv[i], "--trace-limit") && i+1 < argc) {
+      if (!parse_size(argv[++i], &trace_limit)) return usage(argv[0]);
+    }
     else return usage(argv[0]);
   }
   if (!path) return usage(argv[0]);
@@ -71,8 +74,9 @@ int main(int argc, char **argv) {
     for (size_t i = 0; i < steps; ++i) {
       uint32_t pc = machine.cpu.pc, opcode = 0;
       ppcvm_mem_result fetch = ppcvm_memory_read32be(&machine.ram, pc, &opcode);
-      fprintf(stderr, "step=%zu pc=0x%08" PRIx32 " opcode=%s0x%08" PRIx32 "\n",
-              i, pc, fetch == PPCVM_MEM_OK ? "" : "unmapped:", opcode);
+      if (i < trace_limit)
+        fprintf(stderr, "step=%zu pc=0x%08" PRIx32 " opcode=%s0x%08" PRIx32 "\n",
+                i, pc, fetch == PPCVM_MEM_OK ? "" : "unmapped:", opcode);
       result = ppcvm_pegasos2_step(&machine);
       if (result != PPCVM_OK) {
         fprintf(stderr, "stop: step=%zu pc=0x%08" PRIx32 " result=%d\n",
