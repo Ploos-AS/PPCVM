@@ -70,6 +70,15 @@ jobs:
           powerpc-linux-gnu-ld -m elf32ppclinux -T tests/fixtures/discovery_irq_guest.ld -o build/diagnostics/discovery_irq_guest.elf build/diagnostics/discovery_irq_guest.o
           powerpc-linux-gnu-readelf -h -l -s build/diagnostics/discovery_irq_guest.elf
           python3 -c 'from pathlib import Path; d=Path("build/diagnostics/discovery_irq_guest.elf").read_bytes(); assert d[:7]==bytes.fromhex("7f454c46010201"); assert int.from_bytes(d[18:20],"big")==20; assert int.from_bytes(d[24:28],"big")==0x1000'
+      - name: Exercise PPCVM ELF command-line runner
+        run: |
+          cmake -S . -B build/cli-host -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build/cli-host --target ppcvm --parallel
+          build/cli-host/ppcvm --elf build/diagnostics/discovery_irq_guest.elf --ram 64 --steps 2
+          if build/cli-host/ppcvm --elf build/diagnostics/discovery_irq_guest.elf --ram 64 --steps 2 --abi-v2; then
+            echo "Unexpected ABI v2 success: boot record overlaps guest segment" >&2
+            exit 1
+          fi
       - name: Run Discovery II IRQ ELF guest in PPCVM
         run: |
           cmake -S . -B build/irq-host -DCMAKE_BUILD_TYPE=Debug
