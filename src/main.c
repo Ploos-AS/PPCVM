@@ -6,9 +6,23 @@
 #include <string.h>
 
 static int usage(const char *program) {
-  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace] [--trace-limit N]\n", program);
+  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace] [--trace-limit N] [--dump-registers]\n", program);
   fprintf(stderr, "Experimental PVC1 guest runner; not an Open Firmware or Linux boot environment.\n");
   return 2;
+}
+static void dump_registers(const ppcvm_cpu *cpu) {
+  fprintf(stderr, "CPU: pc=%08" PRIx32 " lr=%08" PRIx32
+          " ctr=%08" PRIx32 " cr=%08" PRIx32
+          " xer=%08" PRIx32 " msr=%08" PRIx32 "\n",
+          cpu->pc, cpu->lr, cpu->ctr, cpu->cr, cpu->xer, cpu->msr);
+  fprintf(stderr, "Exceptions: srr0=%08" PRIx32 " srr1=%08" PRIx32
+          " dar=%08" PRIx32 " dsisr=%08" PRIx32 "\n",
+          cpu->srr0, cpu->srr1, cpu->dar, cpu->dsisr);
+  for (unsigned i = 0; i < 32u; i += 4u)
+    fprintf(stderr, "r%02u=%08" PRIx32 " r%02u=%08" PRIx32
+            " r%02u=%08" PRIx32 " r%02u=%08" PRIx32 "\n",
+            i, cpu->gpr[i], i+1u, cpu->gpr[i+1u],
+            i+2u, cpu->gpr[i+2u], i+3u, cpu->gpr[i+3u]);
 }
 static int parse_size(const char *s, size_t *out) {
   char *end = NULL;
@@ -23,7 +37,7 @@ static int parse_size(const char *s, size_t *out) {
 int main(int argc, char **argv) {
   const char *path = NULL;
   size_t steps = 1000, ram_mib = 64, executed = 0, trace_limit = 1000;
-  int abi_v2 = 0, trace = 0, rc = 1;
+  int abi_v2 = 0, trace = 0, dump = 0, rc = 1;
   FILE *fp = NULL;
   uint8_t *image = NULL;
   ppcvm_pegasos2 machine;
@@ -39,6 +53,7 @@ int main(int argc, char **argv) {
           ram_mib > UINT32_MAX / (1024u*1024u)) return usage(argv[0]);
     } else if (!strcmp(argv[i], "--abi-v2")) abi_v2 = 1;
     else if (!strcmp(argv[i], "--trace")) trace = 1;
+    else if (!strcmp(argv[i], "--dump-registers")) dump = 1;
     else if (!strcmp(argv[i], "--trace-limit") && i+1 < argc) {
       if (!parse_size(argv[++i], &trace_limit)) return usage(argv[0]);
     }
@@ -90,6 +105,7 @@ int main(int argc, char **argv) {
   }
   printf("Guest: result=%d, executed=%zu, pc=0x%08" PRIx32 "\n",
          (int)result, executed, machine.cpu.pc);
+  if (dump || result != PPCVM_OK) dump_registers(&machine.cpu);
   rc = result == PPCVM_OK ? 0 : 1;
 done:
   if (initialized) ppcvm_pegasos2_destroy(&machine);
