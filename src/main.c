@@ -6,7 +6,7 @@
 #include <string.h>
 
 static int usage(const char *program) {
-  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace] [--trace-limit N] [--dump-registers]\n", program);
+  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace] [--trace-limit N] [--dump-registers] [--break-pc HEX]\n", program);
   fprintf(stderr, "Experimental PVC1 guest runner; not an Open Firmware or Linux boot environment.\n");
   return 2;
 }
@@ -24,6 +24,16 @@ static void dump_registers(const ppcvm_cpu *cpu) {
             i, cpu->gpr[i], i+1u, cpu->gpr[i+1u],
             i+2u, cpu->gpr[i+2u], i+3u, cpu->gpr[i+3u]);
 }
+static int parse_address(const char *s, uint32_t *out) {
+  char *end = NULL;
+  unsigned long long value;
+  if (!s || !*s || *s == '-') return 0;
+  errno = 0;
+  value = strtoull(s, &end, 0);
+  if (errno || !end || *end || value > UINT32_MAX) return 0;
+  *out = (uint32_t)value;
+  return 1;
+}
 static int parse_size(const char *s, size_t *out) {
   char *end = NULL;
   unsigned long long n;
@@ -37,7 +47,8 @@ static int parse_size(const char *s, size_t *out) {
 int main(int argc, char **argv) {
   const char *path = NULL;
   size_t steps = 1000, ram_mib = 64, executed = 0, trace_limit = 1000;
-  int abi_v2 = 0, trace = 0, dump = 0, rc = 1;
+  uint32_t break_pc = 0;
+  int abi_v2 = 0, trace = 0, dump = 0, have_break = 0, rc = 1;
   FILE *fp = NULL;
   uint8_t *image = NULL;
   ppcvm_pegasos2 machine;
@@ -54,6 +65,10 @@ int main(int argc, char **argv) {
     } else if (!strcmp(argv[i], "--abi-v2")) abi_v2 = 1;
     else if (!strcmp(argv[i], "--trace")) trace = 1;
     else if (!strcmp(argv[i], "--dump-registers")) dump = 1;
+    else if (!strcmp(argv[i], "--break-pc") && i+1 < argc) {
+      if (!parse_address(argv[++i], &break_pc) || (break_pc & 3u)) return usage(argv[0]);
+      have_break = 1;
+    }
     else if (!strcmp(argv[i], "--trace-limit") && i+1 < argc) {
       if (!parse_size(argv[++i], &trace_limit)) return usage(argv[0]);
     }
@@ -84,12 +99,17 @@ int main(int argc, char **argv) {
   }
   printf("ELF loaded: entry=0x%08" PRIx32 ", RAM=%zu MiB, ABI=%s\n",
          machine.cpu.pc, ram_mib, abi_v2 ? "PVC1-v2" : "raw");
-  if (trace) {
+  if (trace || have_break) {
     result = PPCVM_OK;
     for (size_t i = 0; i < steps; ++i) {
       uint32_t pc = machine.cpu.pc, opcode = 0;
+      if (have_break && pc == break_pc) {
+        fprintf(stderr, "breakpoint: step=%zu pc=0x%08" PRIx32 "\n", i, pc);
+        dump_registers(&machine.cpu);
+        break;
+      }
       ppcvm_mem_result fetch = ppcvm_memory_read32be(&machine.ram, pc, &opcode);
-      if (i < trace_limit)
+      if (trace && i < trace_limit)
         fprintf(stderr, "step=%zu pc=0x%08" PRIx32 " opcode=%s0x%08" PRIx32 "\n",
                 i, pc, fetch == PPCVM_MEM_OK ? "" : "unmapped:", opcode);
       result = ppcvm_pegasos2_step(&machine);
