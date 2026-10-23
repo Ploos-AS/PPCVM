@@ -120,7 +120,7 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
   if(ok) {
     unsigned publish_attempt;
     int published=0;
-    for(publish_attempt=0;publish_attempt<20u;publish_attempt++) {
+    for(publish_attempt=0;publish_attempt<100u;publish_attempt++) {
       if(MoveFileExA(temp,path,MOVEFILE_REPLACE_EXISTING |
           MOVEFILE_WRITE_THROUGH)) {
         published=1;
@@ -130,7 +130,8 @@ int ppcvm_pci_event_device_save_file(const ppcvm_pci_event_device *d,
        * Only retry transient sharing/lock errors, never path errors. */
       {
         DWORD error=GetLastError();
-        if(error!=ERROR_SHARING_VIOLATION && error!=ERROR_LOCK_VIOLATION)
+        if(error!=ERROR_SHARING_VIOLATION && error!=ERROR_LOCK_VIOLATION &&
+           error!=ERROR_ACCESS_DENIED)
           break;
       }
       Sleep(10u);
