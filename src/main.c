@@ -6,7 +6,7 @@
 #include <string.h>
 
 static int usage(const char *program) {
-  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2]\n", program);
+  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace]\n", program);
   fprintf(stderr, "Experimental PVC1 guest runner; not an Open Firmware or Linux boot environment.\n");
   return 2;
 }
@@ -23,7 +23,7 @@ static int parse_size(const char *s, size_t *out) {
 int main(int argc, char **argv) {
   const char *path = NULL;
   size_t steps = 1000, ram_mib = 64, executed = 0;
-  int abi_v2 = 0, rc = 1;
+  int abi_v2 = 0, trace = 0, rc = 1;
   FILE *fp = NULL;
   uint8_t *image = NULL;
   ppcvm_pegasos2 machine;
@@ -38,6 +38,7 @@ int main(int argc, char **argv) {
       if (!parse_size(argv[++i], &ram_mib) || ram_mib > SIZE_MAX / (1024u*1024u) ||
           ram_mib > UINT32_MAX / (1024u*1024u)) return usage(argv[0]);
     } else if (!strcmp(argv[i], "--abi-v2")) abi_v2 = 1;
+    else if (!strcmp(argv[i], "--trace")) trace = 1;
     else return usage(argv[0]);
   }
   if (!path) return usage(argv[0]);
@@ -65,7 +66,24 @@ int main(int argc, char **argv) {
   }
   printf("ELF loaded: entry=0x%08" PRIx32 ", RAM=%zu MiB, ABI=%s\n",
          machine.cpu.pc, ram_mib, abi_v2 ? "PVC1-v2" : "raw");
-  result = ppcvm_pegasos2_run(&machine, steps, &executed);
+  if (trace) {
+    result = PPCVM_OK;
+    for (size_t i = 0; i < steps; ++i) {
+      uint32_t pc = machine.cpu.pc, opcode = 0;
+      ppcvm_mem_result fetch = ppcvm_memory_read32be(&machine.ram, pc, &opcode);
+      fprintf(stderr, "step=%zu pc=0x%08" PRIx32 " opcode=%s0x%08" PRIx32 "\\n",
+              i, pc, fetch == PPCVM_MEM_OK ? "" : "unmapped:", opcode);
+      result = ppcvm_pegasos2_step(&machine);
+      if (result != PPCVM_OK) {
+        fprintf(stderr, "stop: step=%zu pc=0x%08" PRIx32 " result=%d\\n",
+                i, pc, (int)result);
+        break;
+      }
+      ++executed;
+    }
+  } else {
+    result = ppcvm_pegasos2_run(&machine, steps, &executed);
+  }
   printf("Guest: result=%d, executed=%zu, pc=0x%08" PRIx32 "\n",
          (int)result, executed, machine.cpu.pc);
   rc = result == PPCVM_OK ? 0 : 1;
