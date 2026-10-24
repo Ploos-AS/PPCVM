@@ -79,6 +79,20 @@ jobs:
             echo "Unexpected ABI v2 success: boot record overlaps guest segment" >&2
             exit 1
           fi
+      - name: Verify CLI breakpoint and register diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          build/cli-host/ppcvm --elf build/diagnostics/discovery_irq_guest.elf --ram 64 --steps 10 --break-pc 0x1000 --dump-registers > build/cli-breakpoint.log 2>&1
+          grep -q 'breakpoint: step=0 pc=0x00001000' build/cli-breakpoint.log
+          grep -q 'executed=0, pc=0x00001000' build/cli-breakpoint.log
+          grep -q 'r00=' build/cli-breakpoint.log
+          build/cli-host/ppcvm --elf build/diagnostics/discovery_irq_guest.elf --ram 64 --steps 2 --trace --trace-limit 1 > build/cli-trace.log 2>&1
+          grep -q 'step=0 pc=0x00001000' build/cli-trace.log
+          if grep -q 'step=1 pc=' build/cli-trace.log; then
+            echo "trace-limit emitted a second instruction" >&2
+            exit 1
+          fi
       - name: Run Discovery II IRQ ELF guest in PPCVM
         run: |
           cmake -S . -B build/irq-host -DCMAKE_BUILD_TYPE=Debug
