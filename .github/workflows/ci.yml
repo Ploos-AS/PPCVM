@@ -112,6 +112,29 @@ jobs:
             fi
             grep -q 'is not aligned inside an executable LOAD segment' "build/entry-$name.log"
           done
+      - name: Execute ELF with distinct virtual and physical load addresses
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          data = bytearray(Path("build/diagnostics/discovery_irq_guest.elf").read_bytes())
+          phoff = int.from_bytes(data[28:32], "big")
+          phsize = int.from_bytes(data[42:44], "big")
+          phnum = int.from_bytes(data[44:46], "big")
+          changed = 0
+          for i in range(phnum):
+              p = phoff + i * phsize
+              if int.from_bytes(data[p:p+4], "big") != 1:
+                  continue
+              physical = int.from_bytes(data[p+12:p+16], "big")
+              data[p+8:p+12] = (physical + 0x80000000).to_bytes(4, "big")
+              changed += 1
+          assert changed
+          Path("build/diagnostics/physical-load.elf").write_bytes(data)
+          PY
+          build/cli-host/ppcvm --elf build/diagnostics/physical-load.elf --ram 64 --steps 2 > build/physical-load.log
+          grep -q 'executed=2' build/physical-load.log
       - name: Verify CLI breakpoint and register diagnostics
         shell: bash
         run: |
