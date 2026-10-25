@@ -14,6 +14,7 @@ jobs:
             make bc bison flex libssl-dev libelf-dev libncurses-dev dwarves
       - name: Fetch pinned Linux kernel source
         run: |
+          mkdir -p build
           git clone --depth 1 --branch v6.6 https://github.com/torvalds/linux.git build/linux-src
           git -C build/linux-src rev-parse HEAD | tee build/linux-source-revision.txt
       - name: Build PPCVM
