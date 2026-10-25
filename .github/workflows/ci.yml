@@ -91,6 +91,27 @@ jobs:
             exit 1
           fi
           grep -q 'Not an ELF32 big-endian PowerPC image' build/cli-elf-invalid.log
+      - name: Reject invalid PowerPC ELF entry points
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          original = bytearray(Path("build/diagnostics/discovery_irq_guest.elf").read_bytes())
+          entry = int.from_bytes(original[24:28], "big")
+          assert entry == 0x1000
+          for name, value in (("unaligned", entry + 2), ("outside", 0x7ffff000)):
+              data = original.copy()
+              data[24:28] = value.to_bytes(4, "big")
+              Path("build/diagnostics/entry-" + name + ".elf").write_bytes(data)
+          PY
+          for name in unaligned outside; do
+            if build/cli-host/ppcvm --elf "build/diagnostics/entry-$name.elf" --ram 64 --steps 1 > "build/entry-$name.log" 2>&1; then
+              echo "Invalid ELF entry $name unexpectedly accepted" >&2
+              exit 1
+            fi
+            grep -q 'is not aligned inside an executable LOAD segment' "build/entry-$name.log"
+          done
       - name: Verify CLI breakpoint and register diagnostics
         shell: bash
         run: |
