@@ -134,11 +134,16 @@ int main(int argc, char **argv) {
     const uint32_t phoff = elf_be32(image+28);
     const uint16_t phsize = elf_be16(image+42), count = elf_be16(image+44);
     const uint64_t ram_bytes = (uint64_t)ram_mib * 1024u * 1024u;
+    const uint32_t entry = elf_be32(image+24);
+    int executable_entry = 0;
     for (uint16_t i = 0; i < count; ++i) {
       const uint8_t *p = image + (size_t)phoff + (size_t)i * phsize;
       if (elf_be32(p) != 1u) continue;
       const uint32_t offset = elf_be32(p+4), addr = elf_be32(p+8);
       const uint32_t file_bytes = elf_be32(p+16), mem_bytes = elf_be32(p+20);
+      if ((elf_be32(p+24) & 1u) && (uint64_t)entry >= addr &&
+          (uint64_t)entry + 4u <= (uint64_t)addr + file_bytes)
+        executable_entry = 1;
       if (file_bytes > mem_bytes ||
           (uint64_t)offset + file_bytes > (uint64_t)(size_t)length ||
           (uint64_t)addr + mem_bytes > ram_bytes) {
@@ -147,6 +152,10 @@ int main(int argc, char **argv) {
                 (unsigned)i, addr, file_bytes, mem_bytes, ram_mib);
         goto done;
       }
+    }
+    if ((entry & 3u) || !executable_entry) {
+      fprintf(stderr, "ELF entry 0x%08" PRIx32 " is not aligned inside an executable LOAD segment\n", entry);
+      goto done;
     }
   }
   if (ppcvm_pegasos2_init(&machine, ram_mib * 1024u * 1024u)) {
