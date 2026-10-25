@@ -145,9 +145,11 @@ int main(int argc, char **argv) {
     const uint64_t ram_bytes = (uint64_t)ram_mib * 1024u * 1024u;
     const uint32_t entry = elf_be32(image+24);
     int executable_entry = 0;
+    unsigned loaded_segments = 0;
     for (uint16_t i = 0; i < count; ++i) {
       const uint8_t *p = image + (size_t)phoff + (size_t)i * phsize;
       if (elf_be32(p) != 1u) continue;
+      ++loaded_segments;
       const uint32_t offset = elf_be32(p+4), addr = elf_be32(p+12);
       const uint32_t file_bytes = elf_be32(p+16), mem_bytes = elf_be32(p+20);
       if ((elf_be32(p+24) & 1u) && (uint64_t)entry >= addr &&
@@ -161,6 +163,10 @@ int main(int argc, char **argv) {
                 (unsigned)i, addr, file_bytes, mem_bytes, ram_mib);
         goto done;
       }
+    }
+    if (!loaded_segments) {
+      fprintf(stderr, "ELF has no loadable PT_LOAD segments\n");
+      goto done;
     }
     if ((entry & 3u) || !executable_entry) {
       fprintf(stderr, "ELF entry 0x%08" PRIx32 " is not aligned inside an executable LOAD segment\n", entry);
