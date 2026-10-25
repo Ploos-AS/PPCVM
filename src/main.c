@@ -34,10 +34,10 @@ static uint32_t elf_be32(const uint8_t *p) {
 static int inspect_elf(const uint8_t *image, size_t length) {
   uint32_t phoff;
   uint16_t phentsize, phnum;
-  if (length < 52u || memcmp(image, "\\x7f""ELF", 4) != 0 ||
+  if (length < 52u || (image[0] != 0x7fu || image[1] != 'E' || image[2] != 'L' || image[3] != 'F') ||
       image[4] != 1u || image[5] != 2u || image[6] != 1u ||
       elf_be16(image+18) != 20u) {
-    fprintf(stderr, "Not an ELF32 big-endian PowerPC image\\n");
+    fprintf(stderr, "Not an ELF32 big-endian PowerPC image\n");
     return 0;
   }
   phoff = elf_be32(image+28);
@@ -45,16 +45,16 @@ static int inspect_elf(const uint8_t *image, size_t length) {
   phnum = elf_be16(image+44);
   if (phentsize < 32u || (size_t)phoff > length ||
       (size_t)phnum > (length-(size_t)phoff)/phentsize) {
-    fprintf(stderr, "Invalid ELF program-header table\\n");
+    fprintf(stderr, "Invalid ELF program-header table\n");
     return 0;
   }
-  printf("ELF32 PPC: type=%u entry=0x%08" PRIx32 " segments=%u\\n",
+  printf("ELF32 PPC: type=%u entry=0x%08" PRIx32 " segments=%u\n",
          (unsigned)elf_be16(image+16), elf_be32(image+24), (unsigned)phnum);
   for (uint16_t i=0; i<phnum; ++i) {
     const uint8_t *p=image+(size_t)phoff+(size_t)i*phentsize;
     if (elf_be32(p)==1u)
       printf("LOAD %u: offset=0x%08" PRIx32 " vaddr=0x%08" PRIx32
-             " paddr=0x%08" PRIx32 " filesz=%" PRIu32 " memsz=%" PRIu32 "\\n",
+             " paddr=0x%08" PRIx32 " filesz=%" PRIu32 " memsz=%" PRIu32 "\n",
              (unsigned)i, elf_be32(p+4), elf_be32(p+8),
              elf_be32(p+12), elf_be32(p+16), elf_be32(p+20));
   }
