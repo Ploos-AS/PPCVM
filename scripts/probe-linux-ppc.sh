@@ -15,9 +15,10 @@ done
 [[ -x "$emulator" ]] || { echo "Missing executable: $emulator" >&2; exit 2; }
 mkdir -p "$output"
 readelf -h -l "$kernel" > "$output/readelf.txt"
-if ! readelf -h "$kernel" | grep -Eq 'Class:[[:space:]]*ELF32' ||
-   ! readelf -h "$kernel" | grep -Eq 'Data:[[:space:]]*2.s complement, big endian' ||
-   ! readelf -h "$kernel" | grep -Eq 'Machine:[[:space:]]*PowerPC'; then
+header=$(readelf -h "$kernel")
+if ! grep -Eq 'Class:[[:space:]]*ELF32' <<< "$header" ||
+   ! grep -Eq 'Data:[[:space:]]*2.s complement, big endian' <<< "$header" ||
+   ! grep -Eq 'Machine:[[:space:]]*PowerPC' <<< "$header"; then
   echo "Kernel is not ELF32 big-endian PowerPC; see $output/readelf.txt" >&2
   exit 2
 fi
