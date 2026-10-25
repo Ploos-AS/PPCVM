@@ -125,7 +125,6 @@ int main(int argc, char **argv) {
   }
   fclose(fp); fp = NULL;
   if (inspect) { rc = inspect_elf(image, (size_t)length) ? 0 : 1; goto done; }
-  if (!inspect_elf(image, (size_t)length)) goto done;
   if (elf_be16(image+16) != 2u) {
     fprintf(stderr, "Guest ELF must be ET_EXEC (type 2), not relocatable or shared\n");
     goto done;
@@ -139,7 +138,7 @@ int main(int argc, char **argv) {
     for (uint16_t i = 0; i < count; ++i) {
       const uint8_t *p = image + (size_t)phoff + (size_t)i * phsize;
       if (elf_be32(p) != 1u) continue;
-      const uint32_t offset = elf_be32(p+4), addr = elf_be32(p+8);
+      const uint32_t offset = elf_be32(p+4), addr = elf_be32(p+12);
       const uint32_t file_bytes = elf_be32(p+16), mem_bytes = elf_be32(p+20);
       if ((elf_be32(p+24) & 1u) && (uint64_t)entry >= addr &&
           (uint64_t)entry + 4u <= (uint64_t)addr + file_bytes)
@@ -147,7 +146,7 @@ int main(int argc, char **argv) {
       if (file_bytes > mem_bytes ||
           (uint64_t)offset + file_bytes > (uint64_t)(size_t)length ||
           (uint64_t)addr + mem_bytes > ram_bytes) {
-        fprintf(stderr, "LOAD %u does not fit file/RAM: vaddr=0x%08" PRIx32
+        fprintf(stderr, "LOAD %u does not fit file/RAM: paddr=0x%08" PRIx32
                 " filesz=%" PRIu32 " memsz=%" PRIu32 " RAM=%zu MiB\n",
                 (unsigned)i, addr, file_bytes, mem_bytes, ram_mib);
         goto done;
