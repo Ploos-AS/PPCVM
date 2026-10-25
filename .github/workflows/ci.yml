@@ -79,6 +79,18 @@ jobs:
             echo "Unexpected ABI v2 success: boot record overlaps guest segment" >&2
             exit 1
           fi
+      - name: Inspect PowerPC ELF loader metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          build/cli-host/ppcvm --elf build/diagnostics/discovery_irq_guest.elf --inspect-elf > build/cli-elf-inspect.log
+          grep -q 'ELF32 PPC: type=2 entry=0x00001000' build/cli-elf-inspect.log
+          grep -q '^LOAD ' build/cli-elf-inspect.log
+          if build/cli-host/ppcvm --elf README.md --inspect-elf > build/cli-elf-invalid.log 2>&1; then
+            echo "Non-ELF file unexpectedly accepted" >&2
+            exit 1
+          fi
+          grep -q 'Not an ELF32 big-endian PowerPC image' build/cli-elf-invalid.log
       - name: Verify CLI breakpoint and register diagnostics
         shell: bash
         run: |
