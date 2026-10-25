@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
   if (inspect) { rc = inspect_elf(image, (size_t)length) ? 0 : 1; goto done; }
   if (!inspect_elf(image, (size_t)length)) goto done;
   if (elf_be16(image+16) != 2u) {
-    fprintf(stderr, "Guest ELF must be ET_EXEC (type 2), not relocatable or shared\\n");
+    fprintf(stderr, "Guest ELF must be ET_EXEC (type 2), not relocatable or shared\n");
     goto done;
   }
   {
@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
           (uint64_t)offset + file_bytes > (uint64_t)(size_t)length ||
           (uint64_t)addr + mem_bytes > ram_bytes) {
         fprintf(stderr, "LOAD %u does not fit file/RAM: vaddr=0x%08" PRIx32
-                " filesz=%" PRIu32 " memsz=%" PRIu32 " RAM=%zu MiB\\n",
+                " filesz=%" PRIu32 " memsz=%" PRIu32 " RAM=%zu MiB\n",
                 (unsigned)i, addr, file_bytes, mem_bytes, ram_mib);
         goto done;
       }
