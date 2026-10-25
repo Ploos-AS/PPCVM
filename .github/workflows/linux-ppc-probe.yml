@@ -1,0 +1,44 @@
+name: Linux PPC first-failure experiment
+on:
+  workflow_dispatch:
+jobs:
+  linux-ppc-probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install kernel cross-build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-powerpc-linux-gnu binutils-powerpc-linux-gnu \
+            make bc bison flex libssl-dev libelf-dev libncurses-dev dwarves
+      - name: Fetch pinned Linux kernel source
+        run: |
+          git clone --depth 1 --branch v6.6 https://github.com/torvalds/linux.git build/linux-src
+          git -C build/linux-src rev-parse HEAD | tee build/linux-source-revision.txt
+      - name: Build PPCVM
+        run: |
+          cmake -S . -B build/host -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/host --parallel 2
+      - name: Build 32-bit PowerPC Linux
+        run: |
+          JOBS=2 bash scripts/build-linux-ppc.sh build/linux-src build/linux-ppc pmac32_defconfig
+      - name: Attempt kernel execution and retain first failure
+        run: |
+          set +e
+          bash scripts/probe-linux-ppc.sh build/linux-ppc/vmlinux build/host/ppcvm build/linux-ppc/probe
+          status=$?
+          echo "PPCVM kernel probe exit status: $status"
+          exit 0
+      - name: Upload Linux kernel probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-ppc-first-failure
+          path: |
+            build/linux-source-revision.txt
+            build/linux-ppc/build-metadata.txt
+            build/linux-ppc/vmlinux.sha256
+            build/linux-ppc/vmlinux.readelf.txt
+            build/linux-ppc/probe/
+          if-no-files-found: warn
