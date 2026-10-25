@@ -6,7 +6,7 @@
 #include <string.h>
 
 static int usage(const char *program) {
-  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace] [--trace-limit N] [--dump-registers] [--break-pc HEX]\n", program);
+  fprintf(stderr, "Usage: %s --elf <powerpc-be-elf32> [--steps N] [--ram MiB] [--abi-v2] [--trace] [--trace-limit N] [--dump-registers] [--break-pc HEX] [--inspect-elf]\n", program);
   fprintf(stderr, "Experimental PVC1 guest runner; not an Open Firmware or Linux boot environment.\n");
   return 2;
 }
@@ -23,6 +23,42 @@ static void dump_registers(const ppcvm_cpu *cpu) {
             " r%02u=%08" PRIx32 " r%02u=%08" PRIx32 "\n",
             i, cpu->gpr[i], i+1u, cpu->gpr[i+1u],
             i+2u, cpu->gpr[i+2u], i+3u, cpu->gpr[i+3u]);
+}
+static uint16_t elf_be16(const uint8_t *p) {
+  return (uint16_t)(((uint16_t)p[0] << 8) | p[1]);
+}
+static uint32_t elf_be32(const uint8_t *p) {
+  return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
+         ((uint32_t)p[2] << 8) | p[3];
+}
+static int inspect_elf(const uint8_t *image, size_t length) {
+  uint32_t phoff;
+  uint16_t phentsize, phnum;
+  if (length < 52u || memcmp(image, "\\x7f""ELF", 4) != 0 ||
+      image[4] != 1u || image[5] != 2u || image[6] != 1u ||
+      elf_be16(image+18) != 20u) {
+    fprintf(stderr, "Not an ELF32 big-endian PowerPC image\\n");
+    return 0;
+  }
+  phoff = elf_be32(image+28);
+  phentsize = elf_be16(image+42);
+  phnum = elf_be16(image+44);
+  if (phentsize < 32u || (size_t)phoff > length ||
+      (size_t)phnum > (length-(size_t)phoff)/phentsize) {
+    fprintf(stderr, "Invalid ELF program-header table\\n");
+    return 0;
+  }
+  printf("ELF32 PPC: type=%u entry=0x%08" PRIx32 " segments=%u\\n",
+         (unsigned)elf_be16(image+16), elf_be32(image+24), (unsigned)phnum);
+  for (uint16_t i=0; i<phnum; ++i) {
+    const uint8_t *p=image+(size_t)phoff+(size_t)i*phentsize;
+    if (elf_be32(p)==1u)
+      printf("LOAD %u: offset=0x%08" PRIx32 " vaddr=0x%08" PRIx32
+             " paddr=0x%08" PRIx32 " filesz=%" PRIu32 " memsz=%" PRIu32 "\\n",
+             (unsigned)i, elf_be32(p+4), elf_be32(p+8),
+             elf_be32(p+12), elf_be32(p+16), elf_be32(p+20));
+  }
+  return 1;
 }
 static int parse_address(const char *s, uint32_t *out) {
   char *end = NULL;
@@ -48,7 +84,7 @@ int main(int argc, char **argv) {
   const char *path = NULL;
   size_t steps = 1000, ram_mib = 64, executed = 0, trace_limit = 1000;
   uint32_t break_pc = 0;
-  int abi_v2 = 0, trace = 0, dump = 0, have_break = 0, rc = 1;
+  int abi_v2 = 0, trace = 0, dump = 0, have_break = 0, inspect = 0, rc = 1;
   FILE *fp = NULL;
   uint8_t *image = NULL;
   ppcvm_pegasos2 machine;
@@ -64,6 +100,7 @@ int main(int argc, char **argv) {
           ram_mib > UINT32_MAX / (1024u*1024u)) return usage(argv[0]);
     } else if (!strcmp(argv[i], "--abi-v2")) abi_v2 = 1;
     else if (!strcmp(argv[i], "--trace")) trace = 1;
+    else if (!strcmp(argv[i], "--inspect-elf")) inspect = 1;
     else if (!strcmp(argv[i], "--dump-registers")) dump = 1;
     else if (!strcmp(argv[i], "--break-pc") && i+1 < argc) {
       if (!parse_address(argv[++i], &break_pc) || (break_pc & 3u)) return usage(argv[0]);
@@ -87,6 +124,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed reading ELF image\n"); goto done;
   }
   fclose(fp); fp = NULL;
+  if (inspect) { rc = inspect_elf(image, (size_t)length) ? 0 : 1; goto done; }
   if (ppcvm_pegasos2_init(&machine, ram_mib * 1024u * 1024u)) {
     fprintf(stderr, "Machine initialization failed\n"); goto done;
   }
