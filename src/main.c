@@ -125,6 +125,16 @@ int main(int argc, char **argv) {
   }
   fclose(fp); fp = NULL;
   if (inspect) { rc = inspect_elf(image, (size_t)length) ? 0 : 1; goto done; }
+  if ((size_t)length < 52u || image[0] != 0x7fu ||
+      image[1] != 'E' || image[2] != 'L' || image[3] != 'F' ||
+      image[4] != 1u || image[5] != 2u || image[6] != 1u ||
+      elf_be16(image+18) != 20u || elf_be16(image+42) < 32u ||
+      (size_t)elf_be32(image+28) > (size_t)length ||
+      (size_t)elf_be16(image+44) >
+        ((size_t)length - (size_t)elf_be32(image+28)) / elf_be16(image+42)) {
+    fprintf(stderr, "Invalid ELF32 PowerPC header or program-header table\n");
+    goto done;
+  }
   if (elf_be16(image+16) != 2u) {
     fprintf(stderr, "Guest ELF must be ET_EXEC (type 2), not relocatable or shared\n");
     goto done;
