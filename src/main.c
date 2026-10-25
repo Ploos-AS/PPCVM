@@ -125,6 +125,30 @@ int main(int argc, char **argv) {
   }
   fclose(fp); fp = NULL;
   if (inspect) { rc = inspect_elf(image, (size_t)length) ? 0 : 1; goto done; }
+  if (!inspect_elf(image, (size_t)length)) goto done;
+  if (elf_be16(image+16) != 2u) {
+    fprintf(stderr, "Guest ELF must be ET_EXEC (type 2), not relocatable or shared\\n");
+    goto done;
+  }
+  {
+    const uint32_t phoff = elf_be32(image+28);
+    const uint16_t phsize = elf_be16(image+42), count = elf_be16(image+44);
+    const uint64_t ram_bytes = (uint64_t)ram_mib * 1024u * 1024u;
+    for (uint16_t i = 0; i < count; ++i) {
+      const uint8_t *p = image + (size_t)phoff + (size_t)i * phsize;
+      if (elf_be32(p) != 1u) continue;
+      const uint32_t offset = elf_be32(p+4), addr = elf_be32(p+8);
+      const uint32_t file_bytes = elf_be32(p+16), mem_bytes = elf_be32(p+20);
+      if (file_bytes > mem_bytes ||
+          (uint64_t)offset + file_bytes > (uint64_t)(size_t)length ||
+          (uint64_t)addr + mem_bytes > ram_bytes) {
+        fprintf(stderr, "LOAD %u does not fit file/RAM: vaddr=0x%08" PRIx32
+                " filesz=%" PRIu32 " memsz=%" PRIu32 " RAM=%zu MiB\\n",
+                (unsigned)i, addr, file_bytes, mem_bytes, ram_mib);
+        goto done;
+      }
+    }
+  }
   if (ppcvm_pegasos2_init(&machine, ram_mib * 1024u * 1024u)) {
     fprintf(stderr, "Machine initialization failed\n"); goto done;
   }
