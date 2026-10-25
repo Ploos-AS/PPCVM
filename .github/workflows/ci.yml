@@ -7,6 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate Linux/PPC build and probe scripts
+        shell: bash
+        run: |
+          bash -n scripts/build-linux-ppc.sh scripts/probe-linux-ppc.sh
+          if bash scripts/build-linux-ppc.sh > build-script-usage.log 2>&1; then
+            echo "Expected usage failure without Linux source" >&2
+            exit 1
+          fi
+          grep -q 'Usage:' build-script-usage.log
+          if bash scripts/probe-linux-ppc.sh > probe-script-usage.log 2>&1; then
+            echo "Expected usage failure without kernel" >&2
+            exit 1
+          fi
+          grep -q 'Usage:' probe-script-usage.log
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
       - name: Build
