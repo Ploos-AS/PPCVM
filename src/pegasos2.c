@@ -118,8 +118,7 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
   uint32_t phoff=elf32(image+28), start=elf32(image+24);
   uint16_t count=elf16(image+44);
   if (!count || (size_t)phoff>size || (size_t)count>(size-(size_t)phoff)/32u ||
-      (start&3u) || (size_t)start>m->ram.size ||
-      m->ram.size-(size_t)start<4u) return PPCVM_MEMORY_FAULT;
+      (start&3u)) return PPCVM_MEMORY_FAULT;
   /* The image must not alias writable guest RAM: segment copies can otherwise
      overwrite program headers or later segment payloads during loading. */
   {
@@ -128,6 +127,7 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
         (dst>src && dst-src<size)) return PPCVM_UNSUPPORTED;
   }
   unsigned loaded=0, entry_ok=0;
+  uint32_t physical_entry=0;
   for (unsigned i=0;i<count;i++) {
     const uint8_t *ph=image+(size_t)phoff+(size_t)i*32u;
     if (elf32(ph)!=1u) continue;
@@ -141,9 +141,15 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
         (size_t)address>m->ram.size ||
         (size_t)memsz>m->ram.size-(size_t)address) return PPCVM_MEMORY_FAULT;
     /* Entry must point at file-backed instructions in an executable segment. */
-    if ((flags & UINT32_C(1)) && start>=address &&
-        (uint64_t)start+4u<=(uint64_t)address+filesz)
+    /* ELF e_entry is virtual; translate through executable PT_LOAD. */
+    uint32_t virtual_address=elf32(ph+8);
+    if ((flags & UINT32_C(1)) && start>=virtual_address &&
+        (uint64_t)start+4u<=(uint64_t)virtual_address+filesz) {
+      uint64_t resolved=(uint64_t)address+(start-virtual_address);
+      if (resolved+4u>m->ram.size) return PPCVM_MEMORY_FAULT;
+      physical_entry=(uint32_t)resolved;
       entry_ok=1;
+    }
     loaded++;
     for (unsigned j=0;j<i;j++) {
       const uint8_t *prev=image+(size_t)phoff+(size_t)j*32u;
@@ -162,7 +168,7 @@ ppcvm_result ppcvm_pegasos2_load_elf32(ppcvm_pegasos2 *m, const uint8_t *image,
     memmove(m->ram.data+address,image+offset,filesz);
     memset(m->ram.data+address+filesz,0,memsz-filesz);
   }
-  *entry=start;
+  *entry=physical_entry;
   return PPCVM_OK;
 }
 ppcvm_result ppcvm_pegasos2_boot_elf32_abi_v2(ppcvm_pegasos2 *m,
