@@ -1,6 +1,9 @@
 name: Linux PPC first-failure experiment
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/linux-ppc-probe.yml"
 jobs:
   linux-ppc-probe:
     runs-on: ubuntu-24.04
