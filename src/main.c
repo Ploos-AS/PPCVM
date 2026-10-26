@@ -150,10 +150,10 @@ int main(int argc, char **argv) {
       const uint8_t *p = image + (size_t)phoff + (size_t)i * phsize;
       if (elf_be32(p) != 1u) continue;
       ++loaded_segments;
-      const uint32_t offset = elf_be32(p+4), addr = elf_be32(p+12);
+      const uint32_t offset = elf_be32(p+4), vaddr = elf_be32(p+8), addr = elf_be32(p+12);
       const uint32_t file_bytes = elf_be32(p+16), mem_bytes = elf_be32(p+20);
-      if ((elf_be32(p+24) & 1u) && (uint64_t)entry >= addr &&
-          (uint64_t)entry + 4u <= (uint64_t)addr + file_bytes)
+      if ((elf_be32(p+24) & 1u) && (uint64_t)entry >= vaddr &&
+          (uint64_t)entry + 4u <= (uint64_t)vaddr + file_bytes)
         executable_entry = 1;
       if (file_bytes > mem_bytes ||
           (uint64_t)offset + file_bytes > (uint64_t)(size_t)length ||
