@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - ".github/workflows/linux-ppc-probe.yml"
+      - "src/pegasos2.c"
+      - "src/main.c"
+      - "scripts/probe-linux-ppc.sh"
+      - "scripts/build-linux-ppc.sh"
 jobs:
   linux-ppc-probe:
     runs-on: ubuntu-24.04
