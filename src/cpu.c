@@ -218,13 +218,15 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
     case 32: /* lwz */
     case 34: /* lbz */
     case 36: /* stw */
+    case 37: /* stwu: store word with update */
     case 38: { /* stb */
       uint32_t ea = (ra ? cpu->gpr[ra] : 0u) + (uint32_t)(int32_t)(int16_t)imm;
       if (!memory) return PPCVM_MEMORY_FAULT;
       ppcvm_mem_result status;
       uint32_t word;
       uint8_t byte;
-      if ((opcode == 32 || opcode == 36) && (ea & 3u)) return PPCVM_MEMORY_FAULT;
+      if ((opcode == 32 || opcode == 36 || opcode == 37) && (ea & 3u)) return PPCVM_MEMORY_FAULT;
+      if (opcode == 37 && ra == 0u) return PPCVM_UNSUPPORTED;
       if (opcode == 32) {
         status = ppcvm_memory_read32be(memory, ea, &word);
         if (status != PPCVM_MEM_OK) return PPCVM_MEMORY_FAULT;
@@ -233,9 +235,10 @@ ppcvm_result ppcvm_cpu_step_memory(ppcvm_cpu *cpu, ppcvm_memory *memory, uint32_
         status = ppcvm_memory_read8(memory, ea, &byte);
         if (status != PPCVM_MEM_OK) return PPCVM_MEMORY_FAULT;
         cpu->gpr[rt] = byte;
-      } else if (opcode == 36) {
+      } else if (opcode == 36 || opcode == 37) {
         status = ppcvm_memory_write32be(memory, ea, cpu->gpr[rt]);
         if (status != PPCVM_MEM_OK) return PPCVM_MEMORY_FAULT;
+        if (opcode == 37) cpu->gpr[ra] = ea;
       } else {
         status = ppcvm_memory_write8(memory, ea, (uint8_t)cpu->gpr[rt]);
         if (status != PPCVM_MEM_OK) return PPCVM_MEMORY_FAULT;
